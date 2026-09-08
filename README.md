@@ -103,6 +103,34 @@ These skills conform to the open [Agent Skills specification](https://agentskill
 so any compatible agent can load them. Each is a directory with a `SKILL.md`
 (`name` + `description` frontmatter) plus a `references/` folder for progressive disclosure.
 
+## Confused? Just ask your agent 💡
+
+You do not need to understand skills, frontmatter, or per-agent install paths. If all of
+this looks like too much, open your AI coding agent in your project and paste this:
+
+```text
+Install the WordPress security skills from
+https://github.com/mirza-rizvi/WordPress-Security-Skills so this project follows
+them. Read that repository's README, pick the install method that matches the
+agent you are, install all of its skills into your skills directory for this
+project, then tell me which skills you installed and where.
+```
+
+That is the whole setup. The agent reads the [Install](#install) section below, picks its
+own path, and does the copying for you.
+
+ℹ️ **What you are installing** — Skills are plain Markdown instructions. They contain no
+executable code; they only steer your agent toward secure WordPress APIs and patterns.
+
+💡 **Every future project** — Ask for a global install instead: "install them for all my
+projects, not just this one." The per-tool global paths are in the Install section.
+
+⚠️ **If your tool has no skills support** — Paste a link to the most relevant skill's
+`SKILL.md` into the chat and ask the agent to follow it while it works on WordPress code.
+
+❓ **Verify it worked** — Ask your agent: "list the WordPress security skills you have
+installed." It should name skills from this repository.
+
 ## Install
 
 Skills are plain directories — install by copying the ones you want (or the whole `skills/`
