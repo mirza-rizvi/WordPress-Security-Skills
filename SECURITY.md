@@ -31,6 +31,21 @@ defensive but incomplete, use the API correction or insecure example issue templ
 - a suggested secure replacement, if known;
 - whether the issue affects copy-paste reference code or only explanatory guidance.
 
+## What validation does not prove
+
+Skills and examples are guidance, not an independently certified security product.
+PHP lint and coding-standard checks cannot establish authorization correctness,
+resistance to abuse, or compatibility with every plugin and hosting environment.
+Verify changes on a local or staging installation before deployment.
+
+`.gitignore` prevents accidental additions of matching untracked files; it does
+not remove tracked secrets or erase history. Before publishing, scan both the
+current checkout and reachable Git history with a maintained secret scanner,
+review findings privately, and inspect commit metadata for personal information.
+A clean scan means no detections under that scanner's rules, not proof of absence.
+If a credential is exposed, revoke or rotate it first; history cleanup is not a
+substitute. Do not upload unredacted scan reports or credentials in public issues.
+
 ## Maintainer expectations
 
 Maintainers should verify every reported WordPress API against official documentation before

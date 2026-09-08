@@ -15,7 +15,9 @@ defined( 'ABSPATH' ) || exit;
  * Update a custom note on an order from an admin AJAX request.
  */
 function my_plugin_update_order_note() {
-	check_ajax_referer( 'my_plugin_update_order_note', 'nonce', false );
+	if ( ! check_ajax_referer( 'my_plugin_update_order_note', 'nonce', false ) ) {
+		wp_send_json_error( array( 'message' => __( 'Security check failed.', 'my-plugin' ) ), 403 );
+	}
 
 	if ( ! current_user_can( 'edit_shop_orders' ) ) {
 		wp_send_json_error( array( 'message' => __( 'Forbidden.', 'my-plugin' ) ), 403 );

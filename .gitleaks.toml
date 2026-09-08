@@ -1,0 +1,14 @@
+title = "WordPress Security Skills secret scanning"
+
+[extend]
+useDefault = true
+
+# This exact short, fictional token is an intentionally insecure teaching
+# example, including in historical commits. Do not ignore the whole skill or
+# generic-api-key rule: any other credential in this file must still be flagged.
+[[allowlists]]
+description = "Fictional sk-live-abc123 example in the credentials skill only"
+condition = "AND"
+paths = ['''^skills/secrets-credentials-management/SKILL\.md$''']
+regexTarget = "secret"
+regexes = ['''^sk-live-abc123$''']

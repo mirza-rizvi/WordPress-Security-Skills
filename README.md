@@ -47,21 +47,19 @@ Prefer doing it yourself? Jump to [manual installation](#install).
 [Report a security issue](SECURITY.md) · [Contribute](CONTRIBUTING.md)
 
 
-Scope is deliberately **security only**. These skills don't try to teach WordPress in
-general; they make the agent do the secure thing automatically whenever it touches a form,
-a query, an upload, an endpoint, or output.
+Scope is deliberately **security only**. These skills guide development and review;
+they do not automatically enforce controls or prove that a website is secure.
 
 ## Why this exists
 
-AI agents write WordPress code that *looks* right and ships real vulnerabilities — a missing
-nonce, an unescaped echo, `$_GET` concatenated into a query, a REST route with
-`permission_callback => '__return_true'`. These are the same bugs that account for most
-WordPress plugin CVEs. General-purpose WordPress skills cover features; they don't make
-security the default.
+AI-generated WordPress code can omit nonce checks, authorization, escaping, or
+prepared queries. These skills describe those failure modes and show defensive
+patterns for reviewers and developers to adapt.
 
-Each skill here is justified by a **specific, repeated AI mistake** and corrects it with
-copy-paste-ready, WordPress-Coding-Standards-compliant code. Every WordPress API cited is
-verified against the [official reference](https://developer.wordpress.org/reference/).
+Guidance links to the [official WordPress reference](https://developer.wordpress.org/reference/).
+Check API behavior against your supported WordPress/PHP versions. Automated
+validation checks structure, PHP syntax, and coding standards where available;
+it is not an independent security audit or proof that every example is correct.
 
 ## Who it's for
 
@@ -98,7 +96,7 @@ Each skill targets a documented failure mode in AI-generated WordPress code:
 | **wp-cli-security** | Interpolates CLI args into SQL, assumes admin context, or prints secrets. |
 | **woocommerce-security** | Exposes orders without `edit_shop_orders`, stores payment data, or leaks customer PII. |
 | **dependency-supply-chain-security** | Vendors outdated libraries, enqueues unversioned CDN scripts with no integrity, or loads remotely fetched code. |
-| **authentication-session-security** | Rolls a custom login with `md5` compares and no throttling, hand-sets session cookies, or keeps sessions alive after a password change. |
+| **authentication-session-security** | Bypasses core authentication or mishandles session revocation, password changes, and login throttling. |
 | **security-headers-csp** | Sends no security headers, ships a blanket CSP that permits everything, or reflects arbitrary `Origin` values into CORS. |
 
 ## The skills
@@ -134,13 +132,16 @@ Each skill targets a documented failure mode in AI-generated WordPress code:
 
 Every skill follows the same structure: **When to use · Core principles · Step-by-step ·
 Common AI mistakes (wrong→right) · Correct code examples · Checklist · Official references**,
-with copy-paste-ready artifacts under each skill's `references/`.
+with integration examples under each skill's `references/` directory. These are
+not a plugin bundle: adapt prefixes, permissions, storage, and any documented
+asset/template dependencies before running them in a local WordPress environment.
 
 ## Compatibility
 
-Targets **current stable WordPress** with a **PHP 7.4 baseline**; notes are added where PHP
-8.x or a specific WordPress version matters (e.g. the `%i` identifier placeholder, WordPress
-6.2+). Examples follow WordPress Coding Standards conventions.
+Examples generally use a **PHP 7.4 syntax baseline**, with newer WordPress/PHP
+requirements noted where relevant. PHP 7.4 is end-of-life: use a supported PHP
+release and maintained WordPress version for production. Syntax compatibility
+does not imply that an older runtime is secure or supported.
 
 These skills conform to the open [Agent Skills specification](https://agentskills.io/specification),
 so any compatible agent can load them. Each is a directory with a `SKILL.md`
@@ -155,7 +156,7 @@ folder) into your agent's skills directory.
 
 ```bash
 # Personal (all your projects):
-cp -r skills/* ~/.claude/skills/
+mkdir -p ~/.claude/skills && cp -r skills/* ~/.claude/skills/
 
 # Project-scoped (commit with the repo):
 mkdir -p .claude/skills && cp -r skills/* .claude/skills/

@@ -142,7 +142,6 @@ Fix:         $id = absint( $_GET['id'] ?? 0 );
 ## Official references
 
 - [Plugin Security — Plugin Handbook](https://developer.wordpress.org/plugins/security/)
-- [Common Vulnerabilities — Plugin Handbook](https://developer.wordpress.org/plugins/security/common-vulnerabilities/)
 - [Data Validation](https://developer.wordpress.org/apis/security/data-validation/)
 - [Escaping Data](https://developer.wordpress.org/apis/security/escaping/)
 - [WPCS — WordPress Coding Standards (security sniffs)](https://github.com/WordPress/WordPress-Coding-Standards)

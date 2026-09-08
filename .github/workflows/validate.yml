@@ -4,12 +4,18 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install ripgrep
         run: |
@@ -42,17 +48,36 @@ jobs:
       - name: Check external developer.wordpress.org links
         run: |
           set -euo pipefail
-          # Extract developer.wordpress.org URLs from SKILL.md files and HEAD-check them.
-          # Warns on failures/redirects; does not hard-fail so transient outages do not block merges.
-          mkdir -p .tmp
-          rg -o 'https://developer\.wordpress\.org/[^)[:space:]>\"]+' skills/*/SKILL.md | sort -u | while IFS= read -r url; do
-            status="$(curl -sSL --max-time 20 -o /dev/null -w '%{http_code}' "$url" || echo 000)"
-            if [ "$status" -ge 400 ] || [ "$status" -eq 000 ]; then
-              echo "::warning::External link returned $status: $url"
-            elif [ "$status" -ge 300 ]; then
-              echo "::warning::External link redirect ($status): $url"
+          # Extract URL values only, without rg's multi-file filename prefixes.
+          urls="$(rg --no-filename -o 'https://developer\.wordpress\.org/[^)[:space:]>\"]+' skills/*/SKILL.md README.md | sort -u)"
+          [ -n "$urls" ] || { echo "::error::No WordPress reference URLs found"; exit 1; }
+          missing=0
+          while IFS= read -r url; do
+            if ! status="$(curl -sSL --connect-timeout 10 --max-time 20 -o /dev/null -w '%{http_code}' "$url")"; then
+              echo "::warning::Could not check reference (network failure): $url"
+              continue
             fi
-          done
+            case "$status" in
+              404|410) echo "::error::Missing reference ($status): $url"; missing=1 ;;
+              2??) ;;
+              *) echo "::warning::Reference could not be verified ($status): $url" ;;
+            esac
+          done <<< "$urls"
+          exit "$missing"
+
+      - name: Scan checkout and reachable history for secrets
+        run: |
+          set -euo pipefail
+          scanner_dir="$(mktemp -d "$RUNNER_TEMP/gitleaks.XXXXXX")"
+          trap 'rm -rf "$scanner_dir"' EXIT
+          base=https://github.com/gitleaks/gitleaks/releases/download/v8.30.1
+          archive=gitleaks_8.30.1_linux_x64.tar.gz
+          curl -fsSL "$base/$archive" -o "$scanner_dir/$archive"
+          curl -fsSL "$base/gitleaks_8.30.1_checksums.txt" -o "$scanner_dir/checksums.txt"
+          (cd "$scanner_dir" && rg "^[a-f0-9]{64}  $archive$" checksums.txt | sha256sum --check --strict)
+          tar -xzf "$scanner_dir/$archive" -C "$scanner_dir" gitleaks
+          "$scanner_dir/gitleaks" git --log-opts="--all" --redact --no-banner .
+          "$scanner_dir/gitleaks" dir --redact --no-banner .
 
       - name: Remind if README tables may be out of sync
         run: |

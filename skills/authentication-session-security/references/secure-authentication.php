@@ -101,9 +101,11 @@ function myauth_record_failed_login( $username ) {
  * Enforce the throttle.
  *
  * wp_authenticate_user runs inside wp_authenticate_username_password() and
- * wp_authenticate_email_password() AFTER core has verified the credentials,
- * and before wp_set_auth_cookie() is ever reached. Returning a WP_Error
- * here blocks the login; returning anything else passes through.
+ * wp_authenticate_email_password() AFTER the user is found but BEFORE the
+ * password is checked (user.php: apply_filters before wp_check_password), so
+ * a blocked attempt never reaches wp_check_password() or the cookie issue.
+ * Unknown usernames error out before the filter runs and are counted by the
+ * wp_login_failed handler above instead.
  * ---------------------------------------------------------------------- */
 add_filter( 'wp_authenticate_user', 'myauth_check_throttle', 10, 2 );
 function myauth_check_throttle( $user, $password ) {
@@ -162,9 +164,12 @@ function myauth_uniform_login_error( $errors ) {
 /* -------------------------------------------------------------------------
  * Session destruction when identity or trust changes.
  *
- * Auth cookies stay valid as long as their session token exists in the
- * user's session store. Changing the password alone does NOT invalidate
- * issued cookies; only destroying the sessions does.
+ * Default cookie auth embeds part of the stored password hash in the cookie
+ * HMAC (wp_validate_auth_cookie uses substr( $user->user_pass, 8, 4 )), so a
+ * password change already invalidates previously issued cookies. Destroying
+ * the session tokens is defense in depth: it revokes the tokens themselves
+ * (any flow that could re-issue a cookie from them is cut off) and keeps the
+ * session store accurate.
  * ---------------------------------------------------------------------- */
 
 /**
@@ -186,9 +191,10 @@ function myauth_destroy_sessions_after_reset( $user ) {
  *
  * profile_update fires on every user update, so compare the stored hash with
  * the pre-update one and act only on real password changes. A password
- * change by the user themselves kills every OTHER session (a stolen cookie
- * in an attacker's browser dies) while the current session survives so the
- * user is not logged out of the device they are using. When someone else
+ * change already invalidates old cookies (the cookie hash binds part of the
+ * new password hash); wp_destroy_other_sessions() additionally purges the
+ * stored tokens so nothing can be revived from them, while the current
+ * session survives so the user keeps this device. When someone else
  * (an admin) changed the password, no current session can be assumed:
  * destroy everything.
  */

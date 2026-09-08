@@ -12,6 +12,11 @@
  * comment blocks: there is no hardened variant to demonstrate, so nothing in
  * this file executes a fetched payload.
  *
+ * Integration-only example; not an installable plugin. Requires WordPress 6.2+
+ * and PHP 7.4+, a plugin bootstrap, assets/js/app.js beside this file, and
+ * reports/monthly-sales.php + reports/yearly-totals.php beside this file.
+ * These project assets/templates are not supplied. See ../SKILL.md for setup.
+ *
  * @package my-plugin
  */
 
@@ -87,8 +92,9 @@ function my_plugin_enqueue_assets() {
 |
 | Compute the hash for each pinned file once per version bump:
 |
-|   curl -s https://cdn.jsdelivr.net/npm/chart.js@4.1.2/dist/chart.umd.min.js \
-|     | openssl dgst -sha384 -binary | openssl base64 -A
+|   curl --fail --silent --show-error --location \
+|     https://cdn.jsdelivr.net/npm/chart.js@4.1.2/dist/chart.umd.min.js -o chart.js && \
+|     openssl dgst -sha384 -binary chart.js | openssl base64 -A
 |
 | Prefix the result with "sha384-" and store it below. For stylesheets, mirror
 | the same allowlist through the style_loader_tag filter.
@@ -103,8 +109,8 @@ function my_plugin_cdn_assets() {
 	return array(
 		'my-plugin-charts' => array(
 			'src'       => 'https://cdn.jsdelivr.net/npm/chart.js@4.1.2/dist/chart.umd.min.js',
-			// Placeholder: replace with the hash computed for this exact file.
-			'integrity' => 'sha384-REPLACE-WITH-HASH-OF-THE-PINNED-FILE',
+			// SHA-384 of the pinned CDN bytes; recompute on each asset update.
+			'integrity' => 'sha384-XrBQI0kDtx9BrWRwpNT9b09Lwj2M8nnf2tO+zYxJ6IyROBmC05l4AdGWLt2ix1cs',
 			// Matches the version pinned in the src URL path.
 			'version'   => '4.1.2',
 		),
@@ -145,18 +151,22 @@ function my_plugin_add_sri_to_cdn_script( $tag, $handle, $src ) {
 		return $tag;
 	}
 
-	// If another plugin re-pointed this handle elsewhere, do not bless the new
-	// URL with our integrity hash; the pin has been broken, so bail out.
-	if ( ! is_string( $src ) || 0 !== strpos( $src, $assets[ $handle ]['src'] ) ) {
-		return $tag;
+	// Accept only the exact pin or WordPress's exact version-query variant.
+	// Prefix matching accepts sibling paths; returning the old tag fails open.
+	$asset           = $assets[ $handle ];
+	$allowed_sources = array( $asset['src'], add_query_arg( 'ver', $asset['version'], $asset['src'] ) );
+	if ( ! is_string( $src ) || ! in_array( $src, $allowed_sources, true ) ) {
+		return '';
 	}
 
 	$tags = new WP_HTML_Tag_Processor( $tag );
 
-	if ( $tags->next_tag( 'script' ) ) {
-		$tags->set_attribute( 'integrity', $assets[ $handle ]['integrity'] );
-		$tags->set_attribute( 'crossorigin', 'anonymous' );
+	// Earlier filters can change the tag without changing the supplied $src.
+	if ( ! $tags->next_tag( 'script' ) || $src !== $tags->get_attribute( 'src' ) ) {
+		return '';
 	}
+	$tags->set_attribute( 'integrity', $asset['integrity'] );
+	$tags->set_attribute( 'crossorigin', 'anonymous' );
 
 	return $tags->get_updated_html();
 }
@@ -213,7 +223,8 @@ function my_plugin_render_report_template( $report_name ) {
 | Each pattern below executes whatever a remote server returns. They appear
 | only as comments because there is no hardened variant: the fix is to not do
 | it. Updates ship through the WordPress.org update channel, or a signed
-| self-hosted channel -- metadata travels over the network, code does not.
+| self-hosted channel. Update packages travel over the network too; install
+| them through the verified update workflow, not eval/include of fetched bytes.
 |
 | ❌ Insecure: eval() of a fetched body is RCE by design, and the plugin dies
 | when the remote host dies.

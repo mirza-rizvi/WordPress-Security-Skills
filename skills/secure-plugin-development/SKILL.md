@@ -183,6 +183,6 @@ capability, and the full verify → authorize → sanitize → act → escape fl
 - [Plugin Security — Plugin Handbook](https://developer.wordpress.org/plugins/security/)
 - [Checking User Capabilities](https://developer.wordpress.org/plugins/security/checking-user-capabilities/)
 - [Data Validation](https://developer.wordpress.org/apis/security/data-validation/)
-- [Escaping Data](https://developer.wordpress.org/apis/security/escaping-data/)
+- [Escaping Data](https://developer.wordpress.org/apis/security/escaping/)
 - [HTTP API](https://developer.wordpress.org/plugins/http-api/)
 - [OWASP Top Ten](https://owasp.org/www-project-top-ten/)

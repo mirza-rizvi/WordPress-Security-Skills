@@ -56,10 +56,11 @@ handling.
    `get_client_ip()`. `X-Forwarded-For` and similar headers are client-
    controlled; trusting them lets an attacker rotate a fresh "IP" per request
    and defeat IP-keyed throttling.
-4. **Destroy sessions when identity or trust changes.** Auth cookies stay valid
-   until their session token is removed from the store — changing a password
-   alone does not evict an attacker's session. `wp_destroy_other_sessions()`
-   after a password change; `wp_destroy_all_sessions()` or
+4. **Destroy sessions when identity or trust changes.** Core auth cookies embed
+   a fragment of the stored password hash, so a password change invalidates
+   previously issued cookies — but the session tokens themselves remain in the
+   store. `wp_destroy_other_sessions()` after a password change;
+   `wp_destroy_all_sessions()` or
    `WP_Session_Tokens::get_instance( $user_id )->destroy_all()` when an admin
    forces a logout or a role is elevated or demoted.
 5. **Let core set auth cookies.** Never `setcookie()` your own login-state
@@ -231,11 +232,12 @@ $user = wp_signon( array(
 ), '' );
 ```
 
-### Mistake 5 — Sessions surviving password or role changes
+### Mistake 5 — Treating a password rotation as complete revocation
 
 ```php
-// ❌ Insecure: password rotated, but the attacker's stolen session cookie
-// stays valid until it naturally expires.
+// ❌ Incomplete: core cookies stop validating (the cookie hash embeds part of
+// the new password hash), but the old session tokens remain stored, and any
+// flow that re-issues a cookie from a stored token keeps working.
 function my_plugin_change_password( $user_id, $new_plaintext ) {
     wp_set_password( $new_plaintext, $user_id );
 }

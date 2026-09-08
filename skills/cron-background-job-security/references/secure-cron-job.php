@@ -111,11 +111,7 @@ function my_plugin_deactivate_cron() {
 	wp_clear_scheduled_hook( 'my_plugin_run_user_export' );
 }
 
-/**
- * Stub for the export routine.
- *
- * @param int $user_id User ID.
- */
-function my_plugin_generate_user_export( $user_id ) {
-	// Implementation omitted.
-}
+/* Integration requirement: the host plugin must provide
+ * my_plugin_generate_user_export( $user_id ) before enabling this module.
+ * It must create and deliver the real export with access-controlled storage
+ * and retention. It is a project callback, not a WordPress API. See ../SKILL.md. */

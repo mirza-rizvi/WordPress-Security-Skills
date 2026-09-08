@@ -156,7 +156,13 @@ add_action( 'init', function () {
 ### Mistake 5 — Forgetting to unschedule on deactivation
 
 ```php
-// ❌ Risky: orphaned cron events keep firing after plugin deactivation.
+// ❌ Risky: scheduled hooks outlive the plugin — nothing clears them.
+// (No register_deactivation_hook() anywhere in the plugin.)
+register_activation_hook( __FILE__, function () {
+    if ( ! wp_next_scheduled( 'my_plugin_hourly' ) ) {
+        wp_schedule_event( time(), 'hourly', 'my_plugin_hourly' );
+    }
+} );
 ```
 
 ```php
@@ -170,8 +176,10 @@ function my_plugin_deactivate() {
 
 ## Correct code examples
 
-A complete secure cron setup (schedule, callback with stored-context verification, cleanup)
-is in [`references/secure-cron-job.php`](references/secure-cron-job.php).
+An integration example — schedule, callback with stored-context verification, and
+deactivation cleanup — is in [`references/secure-cron-job.php`](references/secure-cron-job.php).
+It calls `my_plugin_generate_user_export( $user_id )`, a project callback your plugin
+must provide (the file documents the contract); adapt names and hooks to your plugin.
 
 ## Checklist
 

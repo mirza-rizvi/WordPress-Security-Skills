@@ -68,6 +68,15 @@ build/
 *.tar
 *.tar.gz
 
+# Local instruction files and redacted security-review reports
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.tmp/
+.cache/
+gitleaks-report*.json
+gitleaks-report*.sarif
+
 # Internal working notes (not part of the public repo)
 docs/phase 1/
 docs/phase-2/

@@ -2,9 +2,10 @@
 /**
  * Secure admin-ajax.php handler reference.
  *
- * Demonstrates the full flow for a privileged AJAX action and a safe public
- * (nopriv) action. Request handlers always verify the nonce, check a capability,
- * sanitize input, and exit through wp_send_json_*.
+ * Integration-only privileged AJAX handler, not a standalone plugin.
+ * Requires a plugin bootstrap and js/my-plugin-ajax.js beside this file.
+ * The commented client request needs a real form, target user and error UI.
+ * See ../SKILL.md for the client contract; no public lookup is implemented.
  *
  * @package My_Plugin
  */
@@ -70,7 +71,10 @@ function my_plugin_ajax_update_profile() {
 		);
 	}
 
-	// 4. Do the work (example: update a user meta field the current user can edit).
+	// 4. Authorize the target user, not just the general editing capability.
+	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		wp_send_json_error( array( 'message' => __( 'Forbidden.', 'my-plugin' ) ), 403 );
+	}
 	update_user_meta( $user_id, 'my_plugin_bio', $bio );
 
 	// 5. Return a success response; escape any values rendered client-side.
@@ -82,42 +86,8 @@ function my_plugin_ajax_update_profile() {
 	);
 }
 
-/*
--------------------------------------------------------------------------
- * Public AJAX handler: wp_ajax_nopriv_* (logged-out visitors).
- *
- * Use only for truly anonymous, rate-limited, non-sensitive actions.
- * Never use nopriv for writes that affect other users or privileged data.
- * ---------------------------------------------------------------------- */
-add_action( 'wp_ajax_nopriv_my_plugin_public_lookup', 'my_plugin_ajax_public_lookup' );
-function my_plugin_ajax_public_lookup() {
-	// Public actions still need a nonce to prevent CSRF from other sites.
-	if ( ! check_ajax_referer( 'my_plugin_public_lookup', 'nonce', false ) ) {
-		wp_send_json_error(
-			array( 'message' => __( 'Security check failed.', 'my-plugin' ) ),
-			403
-		);
-	}
-
-	// No current_user_can() here because the user is anonymous. Apply rate
-	// limiting and restrict the action to safe, public data only.
-	$term = isset( $_POST['term'] )
-		? sanitize_text_field( wp_unslash( $_POST['term'] ) )
-		: '';
-
-	if ( strlen( $term ) < 2 ) {
-		wp_send_json_error(
-			array( 'message' => __( 'Term too short.', 'my-plugin' ) ),
-			400
-		);
-	}
-
-	$results = array(); // Fetch public data based on $term.
-
-	wp_send_json_success(
-		array( 'results' => $results )
-	);
-}
+/* Public lookups need a real public-data query and abuse controls.
+ * This reference intentionally registers no unfinished nopriv endpoint. */
 
 /*
 -------------------------------------------------------------------------

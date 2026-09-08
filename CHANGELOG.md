@@ -24,8 +24,26 @@ tagged releases begin.
   nonce+capability heuristic, and optional PHPCS/WPCS integration.
 - Extended `.github/workflows/validate.yml` with external link checking, README-sync
   reminder, and pinned PHPCS + WordPress Coding Standards step.
-- Coverage matrix and README table updates for all new skills.
+- README: scoped security/verification claims (examples are integration examples,
+  validation limits, PHP 7.4 end-of-life note) and a "Get better results" usage guide.
+- Authentication skill: corrected revocation guidance — core auth cookies embed a
+  fragment of the stored password hash, so password changes already invalidate old
+  cookies; session destruction is defense in depth for stored tokens.
+- AJAX, dependency, and cron references relabeled as integration examples with exact
+  prerequisites; the dependency reference ships a real computed SRI hash and fails
+  closed on CDN source mismatches instead of passing unverified scripts through.
+- SECURITY.md: documents what validation does not prove and the pre-publication
+  secret/history review.
 
+### Fixed
+
+- CI: installs ripgrep (GitHub runners do not ship it); the reference link check now
+  verifies URL values, hard-fails on 404/410 references, and scans the checkout plus
+  reachable Git history for secrets (checksum-verified Gitleaks) using a committed
+  `.gitleaks.toml` whose single allowlist entry covers one documented fictional
+  credential example. Dead developer.wordpress.org links fixed.
+- PHPCS details in reference files (missing `@package`, explicit enqueue args).
+ 
 ### Added (initial)
 
 - 11 core skills: `secure-plugin-development`, `input-sanitization-validation`,
