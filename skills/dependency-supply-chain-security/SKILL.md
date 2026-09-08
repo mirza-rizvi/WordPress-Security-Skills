@@ -187,7 +187,8 @@ wp_enqueue_script(
     'my-charts',
     'https://cdn.jsdelivr.net/npm/chart.js@4.1.2/dist/chart.umd.min.js',
     array(),
-    null // The URL path pins the version; no cache-busting query needed.
+    '4.1.2', // Matches the version pinned in the URL path.
+    true     // Load in the footer.
 );
 // integrity/crossorigin attributes are added in the script_loader_tag filter.
 ```

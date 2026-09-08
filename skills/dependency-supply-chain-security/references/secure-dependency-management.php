@@ -95,9 +95,9 @@ function my_plugin_enqueue_assets() {
 */
 
 /**
- * Map of CDN handles to their pinned source and integrity hash.
+ * Map of CDN handles to their pinned source, integrity hash, and version.
  *
- * @return array<string, array<string, string>> Handle => {src, integrity}.
+ * @return array<string, array<string, string>> Handle => {src, integrity, version}.
  */
 function my_plugin_cdn_assets() {
 	return array(
@@ -105,6 +105,8 @@ function my_plugin_cdn_assets() {
 			'src'       => 'https://cdn.jsdelivr.net/npm/chart.js@4.1.2/dist/chart.umd.min.js',
 			// Placeholder: replace with the hash computed for this exact file.
 			'integrity' => 'sha384-REPLACE-WITH-HASH-OF-THE-PINNED-FILE',
+			// Matches the version pinned in the src URL path.
+			'version'   => '4.1.2',
 		),
 	);
 }
@@ -118,8 +120,8 @@ add_action( 'wp_enqueue_scripts', 'my_plugin_enqueue_cdn_assets' );
  */
 function my_plugin_enqueue_cdn_assets() {
 	foreach ( my_plugin_cdn_assets() as $handle => $asset ) {
-		// Null version: the URL path pins the version, so no query is needed.
-		wp_enqueue_script( $handle, $asset['src'], array(), null );
+		// Version matches the pinned URL; load in the footer.
+		wp_enqueue_script( $handle, $asset['src'], array(), $asset['version'], true );
 	}
 }
 

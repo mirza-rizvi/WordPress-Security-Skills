@@ -15,6 +15,8 @@
  *
  * Every hook and function used here exists in WordPress core and is linked
  * from this skill's SKILL.md to its developer.wordpress.org page.
+ *
+ * @package My_Auth
  */
 
 defined( 'ABSPATH' ) || exit;
