@@ -162,7 +162,6 @@ API against developer.wordpress.org; never invent functions).
 
 - [Security — Common APIs Handbook](https://developer.wordpress.org/apis/security/)
 - [Plugin Security — Plugin Handbook](https://developer.wordpress.org/plugins/security/)
-- [Common Vulnerabilities](https://developer.wordpress.org/plugins/security/common-vulnerabilities/)
 - [Data Validation](https://developer.wordpress.org/apis/security/data-validation/) ·
   [Sanitizing](https://developer.wordpress.org/apis/security/sanitizing/) ·
   [Escaping](https://developer.wordpress.org/apis/security/escaping/) ·
