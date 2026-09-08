@@ -4,6 +4,49 @@ Modular [Agent Skills](https://agentskills.io) that teach AI coding agents — C
 Cursor, Codex, OpenCode, Gemini CLI — to write **secure-by-default WordPress code** and to
 **audit and harden** existing plugins and themes.
 
+## Confused? Just ask your agent 💡
+
+You do not need to understand skills, frontmatter, or per-agent install paths.
+Open your AI coding agent **in the WordPress project you want to work on**, then
+copy and paste this prompt:
+
+```text
+Set up the WordPress security skills from
+https://github.com/mirza-rizvi/WordPress-Security-Skills for this project.
+
+Read the repository's README and inspect my agent's existing configuration.
+Use the install location supported by this agent and its current version;
+prefer project-scoped installation unless I ask for a global installation.
+Copy the skill directories together with their references. Preserve existing
+skills and settings; ask before replacing anything with the same name.
+
+Install instructions only. Do not activate the PHP examples, change my
+WordPress site, access production credentials, commit, or push anything.
+Report the source revision, installed skill names, destination, and any
+reload needed. Verify discovery using the agent's available skill listing;
+if you cannot verify it, say so rather than assuming installation worked.
+```
+
+ℹ️ **What you are installing** — Markdown instructions with PHP and configuration
+reference examples. This is **not a WordPress plugin**, a scanner, or automatic
+protection for your website. Review examples before adapting them to your project.
+
+💡 **Every future project** — Add: “Install these globally for all my projects.”
+Use one scope where possible to avoid duplicate or conflicting skill copies.
+
+⚠️ **No skills support?** — Ask the agent to read the relevant `SKILL.md` and
+its linked references before working. If it cannot open links, provide the local
+files. Pasting a URL alone does not prove the instructions were loaded.
+
+❓ **Verify it worked** — Ask: “Which WordPress security skills can you discover,
+and where were they loaded from?” Restart or reload the tool if required.
+
+Prefer doing it yourself? Jump to [manual installation](#install).
+
+[Browse the skills](#the-skills) · [Get better results](#get-better-results) ·
+[Report a security issue](SECURITY.md) · [Contribute](CONTRIBUTING.md)
+
+
 Scope is deliberately **security only**. These skills don't try to teach WordPress in
 general; they make the agent do the secure thing automatically whenever it touches a form,
 a query, an upload, an endpoint, or output.
@@ -103,34 +146,6 @@ These skills conform to the open [Agent Skills specification](https://agentskill
 so any compatible agent can load them. Each is a directory with a `SKILL.md`
 (`name` + `description` frontmatter) plus a `references/` folder for progressive disclosure.
 
-## Confused? Just ask your agent 💡
-
-You do not need to understand skills, frontmatter, or per-agent install paths. If all of
-this looks like too much, open your AI coding agent in your project and paste this:
-
-```text
-Install the WordPress security skills from
-https://github.com/mirza-rizvi/WordPress-Security-Skills so this project follows
-them. Read that repository's README, pick the install method that matches the
-agent you are, install all of its skills into your skills directory for this
-project, then tell me which skills you installed and where.
-```
-
-That is the whole setup. The agent reads the [Install](#install) section below, picks its
-own path, and does the copying for you.
-
-ℹ️ **What you are installing** — Skills are plain Markdown instructions. They contain no
-executable code; they only steer your agent toward secure WordPress APIs and patterns.
-
-💡 **Every future project** — Ask for a global install instead: "install them for all my
-projects, not just this one." The per-tool global paths are in the Install section.
-
-⚠️ **If your tool has no skills support** — Paste a link to the most relevant skill's
-`SKILL.md` into the chat and ask the agent to follow it while it works on WordPress code.
-
-❓ **Verify it worked** — Ask your agent: "list the WordPress security skills you have
-installed." It should name skills from this repository.
-
 ## Install
 
 Skills are plain directories — install by copying the ones you want (or the whole `skills/`
@@ -179,6 +194,40 @@ and also reads `~/.claude/skills/` and `.claude/skills/`. See the
 Any agent implementing the Agent Skills standard can point at this `skills/` directory. Where
 an agent reads `.claude/skills/` or `.agents/skills/` (several do), the Claude Code paths above
 work as-is.
+
+## Get better results
+
+1. **Give the agent context.** State your WordPress and PHP versions, whether
+   this is a plugin or theme, multisite/WooCommerce usage, relevant user roles,
+   and whether it is working locally or on staging. Never paste production secrets.
+2. **Load the relevant guidance.** Start new code with
+   [secure-plugin-development](skills/secure-plugin-development/SKILL.md).
+   For existing code, start with
+   [security-auditing-code-review](skills/security-auditing-code-review/SKILL.md)
+   and load focused skills as the review identifies trust boundaries.
+3. **Ask for evidence, not a security score.** Require file locations,
+   affected roles, exploit prerequisites, and a concrete verification for each
+   finding. Separate confirmed vulnerabilities from hardening recommendations.
+4. **Keep changes reversible.** Review the diff, verify the changed behavior
+   on local/staging data, and maintain a tested backup before deployment.
+   Skill installation is not authorization to modify a live site.
+
+For an existing project, try:
+
+```text
+Use the installed WordPress security skills to review this project.
+Start read-only: identify entry points, authorization boundaries, and risky
+inputs and outputs. Report confirmed findings with file/line references,
+exploit prerequisites, impact, and recommended fixes. Separate assumptions
+and hardening suggestions from confirmed bugs. Propose a prioritized plan
+before editing; do not access production or publish changes.
+```
+
+Skills improve the instructions available to an agent; they do not guarantee
+secure output or replace updates, backups, monitoring, or a qualified review.
+For reproducibility, record the installed revision. Review upstream changes
+before updating your local copies, then repeat discovery and behavior checks.
+
 
 ## Contributing
 
