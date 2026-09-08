@@ -1,0 +1,34 @@
+name: New skill proposal
+description: Propose a new WordPress security Agent Skill.
+title: "Add skill: "
+labels: ["skill proposal", "security"]
+body:
+  - type: textarea
+    id: security-mistake
+    attributes:
+      label: Security mistake
+      description: What repeated AI-generated WordPress security mistake should this skill prevent?
+    validations:
+      required: true
+  - type: input
+    id: proposed-name
+    attributes:
+      label: Proposed skill name
+      description: Use lowercase words with single hyphens.
+      placeholder: ajax-security
+    validations:
+      required: true
+  - type: textarea
+    id: triggers
+    attributes:
+      label: Trigger examples
+      description: List prompts or code patterns that should activate this skill.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Official references
+      description: Link WordPress developer documentation or handbook pages that support the proposed guidance.
+    validations:
+      required: true

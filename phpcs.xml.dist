@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Security Skills">
+    <description>WordPress Coding Standards for skill reference PHP files.</description>
+
+    <file>skills/*/references/*.php</file>
+
+    <arg name="extensions" value="php"/>
+    <arg value="ps"/>
+
+    <rule ref="WordPress">
+        <!-- Reference files are illustrative snippets, not production plugins. -->
+        <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParam"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.WrongStyle"/>
+        <exclude name="Squiz.Commenting.FileComment.Missing"/>
+        <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+        <exclude name="Squiz.Commenting.BlockComment"/>
+        <exclude name="Squiz.PHP.CommentedOutCode"/>
+        <exclude name="Generic.Commenting.DocComment"/>
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames"/>
+        <exclude name="WordPress.Files.FileName"/>
+        <exclude name="WordPress.DB.DirectDatabaseQuery"/>
+        <exclude name="WordPress.DB.SlowDBQuery"/>
+        <exclude name="WordPress.DB.PreparedSQL"/>
+        <exclude name="WordPress.DB.PreparedSQLPlaceholders"/>
+        <exclude name="WordPress.WP.GlobalVariablesOverride"/>
+        <exclude name="WordPress.WP.AlternativeFunctions"/>
+        <exclude name="WordPress.Security.ValidatedSanitizedInput"/>
+        <exclude name="WordPress.Security.EscapeOutput"/>
+        <exclude name="WordPress.PHP.NoSilencedErrors"/>
+        <exclude name="WordPress.PHP.DevelopmentFunctions"/>
+        <exclude name="WordPress.PHP.DiscouragedPHPFunctions"/>
+        <exclude name="WordPress.CodeAnalysis.EscapedNotTranslated"/>
+    </rule>
+
+    <config name="minimum_supported_wp_version" value="5.8"/>
+    <config name="testVersion" value="7.4-"/>
+
+    <!-- WooCommerce capabilities used in reference examples. -->
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="edit_shop_orders"/>
+                <element value="edit_shop_order"/>
+                <element value="manage_woocommerce"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>

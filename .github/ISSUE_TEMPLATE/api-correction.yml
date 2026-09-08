@@ -1,0 +1,33 @@
+name: WordPress API correction
+description: Report an incorrect, deprecated, or unverifiable WordPress API reference.
+title: "Correct API reference: "
+labels: ["api correction", "security"]
+body:
+  - type: input
+    id: affected-file
+    attributes:
+      label: Affected file
+      placeholder: skills/rest-api-security/SKILL.md
+    validations:
+      required: true
+  - type: textarea
+    id: current-api
+    attributes:
+      label: Current API usage
+      description: Identify the function, hook, class, method, or constant that is wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: official-reference
+    attributes:
+      label: Official reference
+      description: Link the relevant official WordPress reference page.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-correction
+    attributes:
+      label: Suggested correction
+      description: Explain the secure replacement or documentation change.
+    validations:
+      required: false

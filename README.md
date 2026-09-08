@@ -1,0 +1,177 @@
+# WordPress Security Skills
+
+Modular [Agent Skills](https://agentskills.io) that teach AI coding agents — Claude Code,
+Cursor, Codex, OpenCode, Gemini CLI — to write **secure-by-default WordPress code** and to
+**audit and harden** existing plugins and themes.
+
+Scope is deliberately **security only**. These skills don't try to teach WordPress in
+general; they make the agent do the secure thing automatically whenever it touches a form,
+a query, an upload, an endpoint, or output.
+
+## Why this exists
+
+AI agents write WordPress code that *looks* right and ships real vulnerabilities — a missing
+nonce, an unescaped echo, `$_GET` concatenated into a query, a REST route with
+`permission_callback => '__return_true'`. These are the same bugs that account for most
+WordPress plugin CVEs. General-purpose WordPress skills cover features; they don't make
+security the default.
+
+Each skill here is justified by a **specific, repeated AI mistake** and corrects it with
+copy-paste-ready, WordPress-Coding-Standards-compliant code. Every WordPress API cited is
+verified against the [official reference](https://developer.wordpress.org/reference/).
+
+## Who it's for
+
+WordPress plugin and theme developers who use AI coding agents and want the generated code
+to be secure without hand-holding — plus reviewers auditing AI-written or third-party code.
+
+## What these skills solve
+
+Each skill targets a documented failure mode in AI-generated WordPress code:
+
+| Skill | The mistake it prevents |
+| --- | --- |
+| **secure-plugin-development** | Scaffolds without an ABSPATH guard; does work before checks; rolls its own SQL/HTTP instead of core APIs. |
+| **input-sanitization-validation** | Sanitizes without `wp_unslash`, uses the wrong sanitizer, treats `strip_tags` as XSS-safe, never validates. |
+| **output-escaping** | Echoes variables unescaped, or escapes for the wrong context (HTML escaper inside an attribute / URL). |
+| **nonces-csrf-protection** | Acts on requests with no nonce, or verifies a nonce but skips the capability check. |
+| **capability-permission-checks** | Checks roles instead of capabilities, hides UI instead of authorizing, skips per-object checks. |
+| **sql-injection-prevention** | Concatenates input into `$wpdb` queries, mis-quotes `prepare()`, builds `IN()`/`ORDER BY` from input. |
+| **file-upload-security** | Uses raw `move_uploaded_file`, trusts the client MIME type, blocklists extensions, allows path traversal. |
+| **rest-api-security** | Ships `permission_callback => '__return_true'` on writes, skips `args` sanitize/validate. |
+| **security-auditing-code-review** | Reviews for style and misses the security sink; inflates severity; reports without a fix. |
+| **wp-hardening-best-practices** | Leaves debug on, allows the file editor, `chmod 777`, lets uploads execute PHP. |
+| **user-data-protection-privacy** | Stores PII with no export/erase integration; keeps full IPs; exposes PII to low-privilege users. |
+| **ajax-security** | Registers AJAX actions with no nonce, uses `wp_ajax_nopriv_*` for privileged flows, or echoes raw `$_POST`. |
+| **settings-options-security** | Registers settings with no `sanitize_callback`, bypasses `settings_fields`, or echoes `get_option` unescaped. |
+| **http-api-ssrf-prevention** | Calls `wp_remote_get` on user input without host allowlists or `wp_safe_remote_*`. |
+| **shortcode-block-security** | Echoes shortcode/block attributes unescaped or trusts `shortcode_atts()` to sanitize. |
+| **object-injection-deserialization** | Calls `unserialize` / `maybe_unserialize` on attacker-controlled data. |
+| **filesystem-security** | Builds file paths from input without containment checks, or `include`s user-controlled files. |
+| **secrets-credentials-management** | Hardcodes API keys, stores passwords reversibly, or logs tokens. |
+| **cron-background-job-security** | Uses `current_user_can` inside cron callbacks or puts secrets in cron URLs/args. |
+| **multisite-security** | Confuses site/network capabilities, trusts `blog_id` input, or forgets `restore_current_blog`. |
+| **gutenberg-block-editor-security** | Renders block attributes unescaped or registers REST fields with no permission check. |
+| **wp-cli-security** | Interpolates CLI args into SQL, assumes admin context, or prints secrets. |
+| **woocommerce-security** | Exposes orders without `edit_shop_orders`, stores payment data, or leaks customer PII. |
+| **dependency-supply-chain-security** | Vendors outdated libraries, enqueues unversioned CDN scripts with no integrity, or loads remotely fetched code. |
+| **authentication-session-security** | Rolls a custom login with `md5` compares and no throttling, hand-sets session cookies, or keeps sessions alive after a password change. |
+| **security-headers-csp** | Sends no security headers, ships a blanket CSP that permits everything, or reflects arbitrary `Origin` values into CORS. |
+
+## The skills
+
+| Skill | One-liner |
+| --- | --- |
+| [`secure-plugin-development`](skills/secure-plugin-development/) | Secure-by-default baseline + router to the focused skills. |
+| [`input-sanitization-validation`](skills/input-sanitization-validation/) | Unslash, sanitize to type, validate against allowlists. |
+| [`output-escaping`](skills/output-escaping/) | Context-correct escaping at the point of output (XSS). |
+| [`nonces-csrf-protection`](skills/nonces-csrf-protection/) | Generate/verify nonces, paired with capability checks. |
+| [`capability-permission-checks`](skills/capability-permission-checks/) | `current_user_can` with the right (often per-object) capability. |
+| [`sql-injection-prevention`](skills/sql-injection-prevention/) | `$wpdb->prepare()`, `esc_like`, allowlisted identifiers. |
+| [`file-upload-security`](skills/file-upload-security/) | `wp_handle_upload` + type allowlist; block exec & traversal. |
+| [`rest-api-security`](skills/rest-api-security/) | Real `permission_callback`, `args` sanitize/validate. |
+| [`security-auditing-code-review`](skills/security-auditing-code-review/) | Systematic audit: find boundaries, grep sinks, triage, fix. |
+| [`wp-hardening-best-practices`](skills/wp-hardening-best-practices/) | wp-config, `.htaccess`/nginx, permissions, file editor. |
+| [`user-data-protection-privacy`](skills/user-data-protection-privacy/) | GDPR export/erase hooks, IP anonymization, data minimization. |
+| [`ajax-security`](skills/ajax-security/) | Nonce + capability on `admin-ajax.php` handlers; safe JSON responses. |
+| [`settings-options-security`](skills/settings-options-security/) | `register_setting` sanitize_callback, `settings_fields`, escaped options output. |
+| [`http-api-ssrf-prevention`](skills/http-api-ssrf-prevention/) | `wp_safe_remote_*`, host allowlists, and response validation. |
+| [`shortcode-block-security`](skills/shortcode-block-security/) | Sanitized shortcode/block attributes and escaped render output. |
+| [`object-injection-deserialization`](skills/object-injection-deserialization/) | Avoid `unserialize` on untrusted data; prefer JSON. |
+| [`filesystem-security`](skills/filesystem-security/) | Base-directory containment, `validate_file`, safe file delete/write. |
+| [`secrets-credentials-management`](skills/secrets-credentials-management/) | Hashed passwords, encrypted options, Application Passwords. |
+| [`cron-background-job-security`](skills/cron-background-job-security/) | Cron callbacks with no `current_user_can`; validated stored context. |
+| [`multisite-security`](skills/multisite-security/) | Network capabilities, validated `blog_id`, `restore_current_blog`. |
+| [`gutenberg-block-editor-security`](skills/gutenberg-block-editor-security/) | Escaped `render_callback`, REST field permissions, `wp_kses` rich text. |
+| [`wp-cli-security`](skills/wp-cli-security/) | Sanitized CLI args, prepared queries, confirmed destructive ops. |
+| [`woocommerce-security`](skills/woocommerce-security/) | WooCommerce capabilities, order/customer PII handling, tokenized payments. |
+| [`dependency-supply-chain-security`](skills/dependency-supply-chain-security/) | Vetted dependencies, `composer audit`, pinned + SRI-checked CDN assets, no runtime code loading. |
+| [`authentication-session-security`](skills/authentication-session-security/) | Core `wp_signon` flows, cookie/session lifecycle, login throttling, uniform login errors. |
+| [`security-headers-csp`](skills/security-headers-csp/) | `nosniff`, frame protection, Referrer-Policy, real CSP nonces, CORS allowlists, cookie flags. |
+
+Every skill follows the same structure: **When to use · Core principles · Step-by-step ·
+Common AI mistakes (wrong→right) · Correct code examples · Checklist · Official references**,
+with copy-paste-ready artifacts under each skill's `references/`.
+
+## Compatibility
+
+Targets **current stable WordPress** with a **PHP 7.4 baseline**; notes are added where PHP
+8.x or a specific WordPress version matters (e.g. the `%i` identifier placeholder, WordPress
+6.2+). Examples follow WordPress Coding Standards conventions.
+
+These skills conform to the open [Agent Skills specification](https://agentskills.io/specification),
+so any compatible agent can load them. Each is a directory with a `SKILL.md`
+(`name` + `description` frontmatter) plus a `references/` folder for progressive disclosure.
+
+## Install
+
+Skills are plain directories — install by copying the ones you want (or the whole `skills/`
+folder) into your agent's skills directory.
+
+### Claude Code
+
+```bash
+# Personal (all your projects):
+cp -r skills/* ~/.claude/skills/
+
+# Project-scoped (commit with the repo):
+mkdir -p .claude/skills && cp -r skills/* .claude/skills/
+```
+
+Claude Code reads skills from `~/.claude/skills/<name>/SKILL.md` (personal) and
+`.claude/skills/<name>/SKILL.md` (project). It loads each skill's `description` at startup and
+the body on demand. See the [Claude Code skills docs](https://code.claude.com/docs/en/skills).
+
+### Cursor
+
+```bash
+# Project-scoped:
+mkdir -p .cursor/skills && cp -r skills/* .cursor/skills/
+```
+
+Cursor discovers skills in `.cursor/skills/<name>/SKILL.md` (also `.agents/skills/`) anywhere
+in the repo. See the [Cursor skills docs](https://cursor.com/docs/skills).
+
+### OpenCode
+
+```bash
+# Project-scoped:
+mkdir -p .opencode/skills && cp -r skills/* .opencode/skills/
+
+# Global:
+mkdir -p ~/.config/opencode/skills && cp -r skills/* ~/.config/opencode/skills/
+```
+
+OpenCode loads from `.opencode/skills/` (project) and `~/.config/opencode/skills/` (global),
+and also reads `~/.claude/skills/` and `.claude/skills/`. See the
+[OpenCode skills docs](https://opencode.ai/docs/skills).
+
+### Other agents (Codex, Gemini CLI, etc.)
+
+Any agent implementing the Agent Skills standard can point at this `skills/` directory. Where
+an agent reads `.claude/skills/` or `.agents/skills/` (several do), the Claude Code paths above
+work as-is.
+
+## Contributing
+
+New skills and fixes are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the SKILL.md
+contract, description-writing rules, and the WordPress-correctness requirement (verify every
+API against developer.wordpress.org; never invent functions).
+
+## Official WordPress security references
+
+- [Security — Common APIs Handbook](https://developer.wordpress.org/apis/security/)
+- [Plugin Security — Plugin Handbook](https://developer.wordpress.org/plugins/security/)
+- [Common Vulnerabilities](https://developer.wordpress.org/plugins/security/common-vulnerabilities/)
+- [Data Validation](https://developer.wordpress.org/apis/security/data-validation/) ·
+  [Sanitizing](https://developer.wordpress.org/apis/security/sanitizing/) ·
+  [Escaping](https://developer.wordpress.org/apis/security/escaping/) ·
+  [Nonces](https://developer.wordpress.org/apis/security/nonces/)
+- [Hardening WordPress](https://developer.wordpress.org/advanced-administration/security/hardening/)
+- [WordPress Coding Standards](https://github.com/WordPress/WordPress-Coding-Standards)
+- [OWASP Top Ten](https://owasp.org/www-project-top-ten/) ·
+  [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
+
+## License
+
+[MIT](LICENSE).

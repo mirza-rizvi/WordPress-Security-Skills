@@ -1,0 +1,73 @@
+# Operating system junk
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+Thumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+.vscode/
+.zed/
+*.swp
+*.swo
+*~
+*.orig
+*.rej
+*.sublime-workspace
+*.sublime-project
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local.md
+
+# Logs, temp files, backups
+*.log
+*.tmp
+*.temp
+*.bak
+tmp/
+temp/
+
+# AI agent local state and local installs.
+# skills/ in the repo root is the source of truth; anything an agent tool
+# writes or a local skill install copies into this checkout stays local.
+.claude/*
+!.claude/settings.json
+.codex/
+.cursor/
+.opencode/
+.gemini/
+.windsurf/
+.serena/
+.aider*
+
+# PHP and CI tooling artifacts
+*.phar
+vendor/
+.phpunit.cache/
+.phpunit.result.cache
+.phpcs-cache
+.php-cs-fixer.cache
+
+# Node and build caches
+node_modules/
+.npm/
+coverage/
+
+# Generated archives and build output
+dist/
+build/
+*.zip
+*.tar
+*.tar.gz
+
+# Internal working notes (not part of the public repo)
+docs/phase 1/
+docs/phase-2/

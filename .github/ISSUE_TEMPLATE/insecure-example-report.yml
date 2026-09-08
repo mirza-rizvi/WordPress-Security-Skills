@@ -1,0 +1,41 @@
+name: Insecure example report
+description: Report insecure guidance or copy-paste reference code.
+title: "Review insecure example: "
+labels: ["security", "example"]
+body:
+  - type: input
+    id: affected-file
+    attributes:
+      label: Affected file
+      placeholder: skills/file-upload-security/references/secure-file-upload.php
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact area
+      options:
+        - Access control
+        - CSRF
+        - XSS
+        - SQL injection
+        - File upload
+        - Privacy
+        - Hardening
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is insecure?
+      description: Describe the unsafe behavior without publishing active exploit details.
+    validations:
+      required: true
+  - type: textarea
+    id: secure-fix
+    attributes:
+      label: Suggested secure fix
+      description: Include official WordPress references when possible.
+    validations:
+      required: false

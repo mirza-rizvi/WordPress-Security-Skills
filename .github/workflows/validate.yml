@@ -1,0 +1,65 @@
+name: Validate skills
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run skill validation
+        run: ./scripts/validate-skills.sh
+
+      - name: Install PHPCS + WordPress Coding Standards + dependencies
+        run: |
+          set -euo pipefail
+          curl -fsSL -o phpcs.phar https://github.com/PHPCSStandards/PHP_CodeSniffer/releases/download/3.9.0/phpcs.phar
+          chmod +x phpcs.phar
+          curl -fsSL -o wpcs.tar.gz https://github.com/WordPress/WordPress-Coding-Standards/archive/refs/tags/3.0.1.tar.gz
+          tar -xzf wpcs.tar.gz
+          curl -fsSL -o phpcsutils.tar.gz https://github.com/PHPCSStandards/PHPCSUtils/archive/refs/tags/1.0.10.tar.gz
+          tar -xzf phpcsutils.tar.gz
+          curl -fsSL -o phpcsextra.tar.gz https://github.com/PHPCSStandards/PHPCSExtra/archive/refs/tags/1.2.1.tar.gz
+          tar -xzf phpcsextra.tar.gz
+          ./phpcs.phar --config-set installed_paths "$(pwd)/WordPress-Coding-Standards-3.0.1,$(pwd)/PHPCSUtils-1.0.10,$(pwd)/PHPCSExtra-1.2.1"
+          ./phpcs.phar --config-set default_standard WordPress
+          ./phpcs.phar -i
+
+      - name: Run PHPCS on reference PHP files
+        run: |
+          set -euo pipefail
+          ./phpcs.phar --standard=phpcs.xml.dist skills/*/references/*.php
+
+      - name: Check external developer.wordpress.org links
+        run: |
+          set -euo pipefail
+          # Extract developer.wordpress.org URLs from SKILL.md files and HEAD-check them.
+          # Warns on failures/redirects; does not hard-fail so transient outages do not block merges.
+          mkdir -p .tmp
+          rg -o 'https://developer\.wordpress\.org/[^)[:space:]>\"]+' skills/*/SKILL.md | sort -u | while IFS= read -r url; do
+            status="$(curl -sSL --max-time 20 -o /dev/null -w '%{http_code}' "$url" || echo 000)"
+            if [ "$status" -ge 400 ] || [ "$status" -eq 000 ]; then
+              echo "::warning::External link returned $status: $url"
+            elif [ "$status" -ge 300 ]; then
+              echo "::warning::External link redirect ($status): $url"
+            fi
+          done
+
+      - name: Remind if README tables may be out of sync
+        run: |
+          set -euo pipefail
+          skill_count="$(find skills -mindepth 1 -maxdepth 1 -type d | wc -l)"
+          readme_skill_rows="$(rg '^\| \[' README.md | wc -l)"
+          if [ "$skill_count" -ne "$readme_skill_rows" ]; then
+            echo "::warning::README 'The skills' table has $readme_skill_rows rows but skills/ has $skill_count directories. Please sync README.md and docs/coverage-matrix.md."
+          fi
+
+      - name: Inspect skill files
+        run: |
+          rg --files skills
+          rg -n "name:|description:|references/" skills
+          find skills -maxdepth 2 -type f | sort
