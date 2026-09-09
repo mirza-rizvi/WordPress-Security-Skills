@@ -1,0 +1,26 @@
+{
+  "name": "Secure cron-triggered user export",
+  "skills": [
+    "secure-plugin-development",
+    "cron-background-job-security"
+  ],
+  "query": "We're adding on-demand account data exports: real cron hits wp-cron.php every few minutes, and our my_plugin_run_export callback grabs the user_id from the request and generates that account's export. Can you wire up the scheduling side and the callback so exports run reliably for whoever is requested?",
+  "expected_behavior": [
+    "Identify the flaw: the cron callback trusts request data ($_GET user_id) for a privileged action even though wp-cron.php is publicly reachable and anyone can trigger it",
+    "Remove any reliance on $_GET/$_POST or current_user_can() inside the cron callback, since cron runs with no logged-in user",
+    "Queue the job through an authenticated handler with an appropriate capability check and CSRF protection for cookie-authenticated requests before scheduling.",
+    "Sanitize input at schedule time with absint(), confirm the target exists with get_userdata(), and capture the acting user with get_current_user_id() as stored context",
+    "Pass only sanitized ids as cron args via wp_schedule_single_event() — no secrets and no raw user input",
+    "In the callback, re-validate stored args with absint() and re-verify the stored context with user_can( $queued_by, 'manage_options' ) plus get_userdata( $user_id ) before acting",
+    "Abort the job (return early) when stored context is missing, zero, or fails re-verification",
+    "For any recurring schedule, guard with wp_next_scheduled() before wp_schedule_event() and clear hooks with wp_clear_scheduled_hook() in register_deactivation_hook()"
+  ],
+  "success_criteria": [
+    "The cron callback does not read $_GET/$_POST/$_REQUEST and does not call current_user_can()",
+    "Unauthorized or CSRF-invalid queueing requests cannot schedule exports; authorized requests retain the intended target and acting-user context.",
+    "Cron args contain only sanitized ids (absint()) with the acting user id stored as context; no secrets or raw request input",
+    "The callback re-verifies stored context with user_can() and validates the target user with get_userdata() before running the export",
+    "The job aborts when stored context is missing, zero, or fails re-verification",
+    "Public requests cannot choose a privileged export target; public cron may execute an already authorized queued job."
+  ]
+}

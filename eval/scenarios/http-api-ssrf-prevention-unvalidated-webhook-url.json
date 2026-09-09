@@ -1,0 +1,26 @@
+{
+  "name": "Fetch user-supplied URLs securely",
+  "skills": [
+    "secure-plugin-development",
+    "http-api-ssrf-prevention"
+  ],
+  "query": "Users can paste any website URL into my plugin's settings page, and the plugin fetches that URL to import content into posts. Right now the admin form handler does wp_remote_get($_POST['url']) and it works, but I want the import wired up properly before we ship it.",
+  "expected_behavior": [
+    "Locate the outbound HTTP request and classify the URL as untrusted because it comes from $_POST['url'] user input.",
+    "Read the URL with esc_url_raw( wp_unslash( $_POST['url'] ) ) before any validation.",
+    "Parse the host with wp_parse_url( $url, PHP_URL_HOST ) and reject the request unless the host is in an explicit allowlist (in_array on the lowercased host), excluding localhost, link-local, and metadata addresses.",
+    "Run wp_http_validate_url( $url ) as an additional guard so only http/https URLs pass and private/loopback ranges are blocked.",
+    "Replace wp_remote_get() with wp_safe_remote_get() so the URL and every redirect target are validated against internal addresses.",
+    "Check is_wp_error( $response ) before reading the response and log failures without exposing internal network details.",
+    "Accept only response status codes supported by the import format, with timeout, redirect, and response-size limits before processing the body.",
+    "Retrieve the content with wp_remote_retrieve_body( $response ) and treat the body as untrusted input before output or storage."
+  ],
+  "success_criteria": [
+    "wp_remote_get() on the user-supplied URL is replaced with wp_safe_remote_get().",
+    "The host is compared against an explicit allowlist before the request, excluding localhost, 169.254.169.254, and other internal or metadata addresses.",
+    "Only supported HTTP(S) targets and redirect destinations are reachable; domain policy and SSRF validation cannot be bypassed through redirects.",
+    "is_wp_error() is checked before any part of the response is read.",
+    "wp_remote_retrieve_response_code() validates the response code (2xx) before the body is used.",
+    "The fetched body is escaped or sanitized before output or storage."
+  ]
+}

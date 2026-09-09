@@ -1,0 +1,25 @@
+{
+  "name": "Secure user-selected file deletion",
+  "skills": [
+    "secure-plugin-development",
+    "filesystem-security"
+  ],
+  "query": "My export plugin lets admins remove old generated reports from the admin page. The delete handler builds the path straight from the posted filename and unlinks it. Several admins on shared hosting have complained the button feels sketchy - please harden it so only files inside our exports folder can ever be removed.",
+  "expected_behavior": [
+    "Locate the delete handler that concatenates $_POST['file'] into the path passed to unlink()",
+    "Verify the handler checks a nonce and calls current_user_can( 'manage_options' ) before any filesystem operation",
+    "Unslash and sanitize the submitted filename with wp_unslash() followed by sanitize_file_name()",
+    "Build the target path under a known base directory and run validate_file() on the user-derived path",
+    "Resolve both base and existing target with realpath(); enforce a directory-separator boundary, reject siblings sharing the base prefix, directories, and symlink escapes before deletion.",
+    "Replace raw unlink() with wp_delete_file() (or wp_delete_file_from_directory()) for the actual deletion",
+    "Keep full server paths out of error messages and redirect URLs"
+  ],
+  "success_criteria": [
+    "No raw unlink() is called on a user-supplied path; deletion goes through wp_delete_file() or wp_delete_file_from_directory()",
+    "Nonce verification and a current_user_can() capability check both run before the file operation",
+    "The filename passes through wp_unslash() and sanitize_file_name() before being used in a path",
+    "Traversal, sibling-prefix paths, and symlink escapes cannot remove files outside the canonical exports directory.",
+    "Full server paths are not exposed in error output or URLs",
+    "Legitimate files inside the exports directory can still be deleted"
+  ]
+}

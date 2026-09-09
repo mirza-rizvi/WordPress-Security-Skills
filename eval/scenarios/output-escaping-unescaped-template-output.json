@@ -1,0 +1,22 @@
+{
+  "name": "Escape dynamic values in guestbook listing",
+  "skills": ["secure-plugin-development", "output-escaping"],
+  "query": "My guestbook plugin lists entries that visitors submitted — each row echoes the submitter's name, message, and website URL straight from the database into the page. Polish up the listing template so it's ready for release.",
+  "expected_behavior": [
+    "Locate every echo/print site where stored entry values (name, message, website URL) reach the browser",
+    "Escape values rendered as HTML text with esc_html() at the point of output, even though they come from the database",
+    "Escape attribute-context values (value, id, class, data-*) with esc_attr(), not esc_html()",
+    "Escape the website link's href with esc_url() so dangerous schemes like javascript: are stripped",
+    "Escape the final value as it is echoed — never concatenate already-escaped fragments with unescaped ones",
+    "Output translatable labels through the i18n escapers: esc_html__() / esc_html_e() instead of echoing a raw __() result",
+    "If any field is intended to contain markup, render it with wp_kses_post() or wp_kses() with an explicit allowlist rather than leaving it unescaped"
+  ],
+  "success_criteria": [
+    "Every echoed dynamic value is wrapped in the context-appropriate escaper at the point of output",
+    "HTML text uses esc_html() and attribute values use esc_attr()",
+    "URLs in href/src pass through esc_url()",
+    "No raw echoes of database values and no escaped/unescaped string concatenation that defeats escaping",
+    "Translatable strings use esc_html__() / esc_html_e() variants",
+    "Fields meant to contain markup render through wp_kses_post() or wp_kses() with an allowlist"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Secure a custom wpdb lookup query",
+  "skills": ["secure-plugin-development", "sql-injection-prevention"],
+  "query": "I'm adding an order-lookup endpoint to my plugin. It reads the order id from $_GET and runs a custom query against my custom orders table to return the matching row. Here's what I have so far: $row = $wpdb->get_row( \"SELECT * FROM {$wpdb->prefix}orders WHERE id = \" . $_GET['id'] ); — can you finish this so it's production-ready?",
+  "expected_behavior": [
+    "Identify that $_GET['id'] is concatenated directly into the SQL string, which allows SQL injection",
+    "Sanitize the incoming value with absint() before it touches the query",
+    "Rewrite the query template so the dynamic value is a typed placeholder instead of interpolated input",
+    "Run the statement through $wpdb->prepare() with a %d placeholder for the integer id",
+    "Execute the prepared query with $wpdb->get_row()",
+    "Keep the table name built from $wpdb->prefix rather than a hard-coded wp_ prefix",
+    "Confirm no other query in the handler concatenates unsanitized request data"
+  ],
+  "success_criteria": [
+    "No user input is concatenated or interpolated into any SQL string",
+    "The dynamic value is bound via $wpdb->prepare() with a type-correct placeholder (%d)",
+    "Placeholders are not wrapped in extra manual quotes (no '%s')",
+    "The table name uses $wpdb->prefix, not a hard-coded wp_",
+    "Non-numeric input cannot alter the query, and only the requested row is returned"
+  ]
+}

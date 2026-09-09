@@ -7,9 +7,10 @@ description: >
   and verifies them with check_admin_referer, check_ajax_referer, or wp_verify_nonce,
   always paired with a capability check, to prevent CSRF. Apply proactively whenever
   code accepts or acts on a request.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, nonce, csrf, ajax, forms]
+  tags: "wordpress, security, php, nonce, csrf, ajax, forms"
 ---
 
 # Nonces & CSRF protection in WordPress

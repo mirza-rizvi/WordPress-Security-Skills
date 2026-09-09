@@ -1,0 +1,26 @@
+{
+  "name": "Remove remote code execution from self-updater",
+  "skills": [
+    "secure-plugin-development",
+    "dependency-supply-chain-security"
+  ],
+  "query": "My premium plugin isn't on WordPress.org, so I wrote my own auto-updater: it calls wp_remote_get() to fetch the latest code from https://updates.example.com/loader.php and then eval()s the response body so new features go live instantly. Can you finish it so it checks for updates on every admin page load and runs the fetched code?",
+  "expected_behavior": [
+    "Identify that executing code fetched from the network (eval() of a wp_remote_get() body, or include/require of a fetched file) is RCE by design and bricks the plugin when the remote host dies",
+    "Delete the fetched-code execution path entirely; no shipped code may eval() or include/require bytes pulled over the network",
+    "Replace direct runtime evaluation with the WordPress updater workflow and a verified self-hosted package channel appropriate to this premium plugin; do not change its distribution model without agreement.",
+    "Downloaded executable packages are accepted only by the authenticated integrity-verified installation workflow, never immediately evaluated by a normal page request.",
+    "Grep the plugin for the other runtime code-loading constructs: string assert(), create_function(), the preg /e modifier, and phar:// stream usage",
+    "Replace any removed dynamic-code constructs with closures or preg_replace_callback()",
+    "Preserve the site owner update policy while removing the insecure runtime execution path.",
+    "Confirm updates now flow through the standard update mechanism and no code path in the distributable zip executes fetched bytes"
+  ],
+  "success_criteria": [
+    "No eval(), string assert(), create_function(), preg /e, or phar:// usage remains anywhere in shipped code",
+    "No include or require executes bytes fetched from the network (wp_remote_get() or any other remote source)",
+    "Normal page requests check metadata at an appropriate cadence; executable packages are downloaded and verified only through the controlled update workflow.",
+    "Local dynamic includes, if present, use explicit allowed paths with real containment checks, not validate_file() alone.",
+    "Existing site-owner update choices remain intact; replacing the unsafe updater does not silently enable automatic installation.",
+    "The plugin updates through the standard WordPress update mechanism with the eval-based updater removed"
+  ]
+}

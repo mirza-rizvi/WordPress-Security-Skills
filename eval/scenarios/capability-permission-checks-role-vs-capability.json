@@ -1,0 +1,21 @@
+{
+  "name": "Fix role-based access check on privileged admin action",
+  "skills": ["secure-plugin-development", "capability-permission-checks"],
+  "query": "Our plugin's cache-purge handler registered on admin_post_purge_cache is supposed to be limited to administrators, but we gated it with `if ( in_array( 'administrator', wp_get_current_user()->roles, true ) )`. Customers on multisite installs that use custom admin roles report they cannot run the action. Fix the check so it grants access correctly.",
+  "expected_behavior": [
+    "Identify that the handler gates access by testing role membership via wp_get_current_user()->roles instead of verifying a capability",
+    "Replace the in_array() role test with current_user_can( 'manage_options' ), the capability the skill prescribes for site-level operations, so custom roles and multisite super admins granted the capability pass",
+    "Pair the capability check with nonce verification using check_admin_referer( 'purge_cache' ) at the start of the handler",
+    "Branch on the result of current_user_can() and fail closed with wp_die( ..., 403 ) when the check fails, so the check is never called and ignored",
+    "Keep the guard inside the admin_post handler itself, since the admin-post.php URL is directly reachable and hiding the button or menu entry is not security",
+    "Run any request input through wp_unslash() and sanitize/validate it (e.g. absint()) before use in privileged work",
+    "Avoid any code path that reads or assigns roles from the request; authorization must rest solely on the capability check"
+  ],
+  "success_criteria": [
+    "The handler authorizes with current_user_can() using a capability such as manage_options, and no role-membership test (in_array over wp_get_current_user()->roles) remains",
+    "The capability check branches on its result and fails closed with a 403 wp_die() before purge_cache() or any privileged work runs",
+    "Nonce verification with check_admin_referer() is present before the capability check on this state-changing action",
+    "Users granted the capability via custom roles or multisite promotion can run the action, while subscribers and authors without it cannot",
+    "The guard executes in the handler itself, not only where the button or menu item is rendered"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Remove unserialize on user input",
+  "skills": [
+    "secure-plugin-development",
+    "object-injection-deserialization"
+  ],
+  "query": "My plugin's settings page posts a config blob from a hidden form field, and the handler builds the settings array with unserialize( $_POST['config'] ) before saving it. Review the handler and make sure the config import can't be abused.",
+  "expected_behavior": [
+    "Identify the handler that passes the user-supplied $_POST['config'] value to unserialize()",
+    "Flag it as PHP object injection risk: unserialize() on attacker-controlled data can trigger magic methods and POP chains, and note any other unserialize(), maybe_unserialize(), or is_serialized() calls on untrusted input",
+    "Replace unserialize() with JSON parsing: read the value with wp_unslash() and decode it with json_decode( $raw, true )",
+    "Reject malformed payloads: if the decoded value is not an array, fail with wp_die( esc_html__( 'Invalid configuration.', 'my-plugin' ), 400 ) or an equivalent error path",
+    "Validate the decoded shape (expected keys and types) before using any values",
+    "Sanitize each member before use or storage, e.g. sanitize_text_field() for text and esc_url_raw() for URLs",
+    "Do not treat is_serialized() or maybe_unserialize() as safety checks; they do not make a payload safe",
+    "For any remaining unserialize() on trusted internal data, pass array( 'allowed_classes' => false ) so no objects are instantiated",
+    "Store the structured config as JSON with wp_json_encode() (e.g. via update_post_meta()) instead of a serialized blob"
+  ],
+  "success_criteria": [
+    "unserialize(), maybe_unserialize(), or is_serialized()-gated unserialize() no longer runs on the user-supplied config value",
+    "The config is parsed with json_decode() on wp_unslash()'d input, expecting an array",
+    "Invalid or non-array payloads are rejected before use (wp_die() with a 400 code or an equivalent error)",
+    "Decoded values are validated for expected shape and sanitized (sanitize_text_field(), esc_url_raw()) before use or storage",
+    "Any remaining unserialize() call passes array( 'allowed_classes' => false )",
+    "The config is stored via wp_json_encode() as JSON, not as a PHP-serialized blob"
+  ]
+}

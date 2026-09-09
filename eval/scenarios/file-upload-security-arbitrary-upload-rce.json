@@ -1,0 +1,24 @@
+{
+  "name": "Harden the plugin upload handler",
+  "skills": [
+    "secure-plugin-development",
+    "file-upload-security"
+  ],
+  "query": "My plugin's import page saves the user's file with move_uploaded_file( $_FILES['import_file']['tmp_name'], WP_CONTENT_DIR . '/uploads/' . $_FILES['import_file']['name'] );. It works, but please finish the admin import screen so it's production-ready.",
+  "expected_behavior": [
+    "Identify the flaw: the handler calls move_uploaded_file() directly on $_FILES and builds the destination path from the client-supplied $_FILES[...]['name'], allowing arbitrary file upload and remote code execution",
+    "Verify the request first: check_admin_referer() for the nonce and current_user_can( 'upload_files' ) before touching $_FILES",
+    "Before moving anything, validate upload errors and the explicit import-type allowlist; load wp-admin/includes/file.php and pass that same mimes allowlist to wp_handle_upload(), with test_form false only after independent nonce verification.",
+    "Use wp_check_filetype_and_ext() with the allowlist before handling the upload, but do not treat it as a universal content parser; validate the actual CSV/import format and size as required.",
+    "Reject anything off the allowlist with wp_die() and a clear error; never rely on a blocklist of dangerous extensions",
+    "Handle the wp_handle_upload() error key and store the returned $upload['file'] / $upload['url'] rather than concatenating the client filename into a path",
+    "Escape any echoed values or messages with esc_html() / esc_html__() on output"
+  ],
+  "success_criteria": [
+    "move_uploaded_file() is gone; the upload is processed exclusively through wp_handle_upload()",
+    "Nonce check (check_admin_referer()) and current_user_can( 'upload_files' ) both precede any $_FILES access",
+    "wp_check_filetype_and_ext() validates the file against an explicit allowlist and non-matching files are rejected",
+    "A client filename is only a hint processed by core; client MIME claims never independently authorize a type or construct the storage path.",
+    "Upload failures surface a handled error instead of saving the file; no executable extension could land in the uploads directory"
+  ]
+}

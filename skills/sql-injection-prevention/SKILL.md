@@ -6,9 +6,10 @@ description: >
   $wpdb->prepare() with correct placeholders (%d, %s, %f, %i), $wpdb->esc_like() for
   LIKE, and allowlists for identifiers that cannot be parameterized. Prevents SQL
   injection. Apply proactively to every query containing a dynamic value.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, sql, wpdb, injection, database]
+  tags: "wordpress, security, php, sql, wpdb, injection, database"
 ---
 
 # SQL injection prevention with `$wpdb`

@@ -6,9 +6,10 @@ description: >
   attributes with shortcode_atts, validates against allowlists, and escapes all
   rendered output for its context with esc_html, esc_attr, esc_url, or
   wp_kses_post. Prevents stored and reflected XSS in rendered content.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, shortcode, block, xss, gutenberg]
+  tags: "wordpress, security, php, shortcode, block, xss, gutenberg"
 ---
 
 # Shortcode & dynamic block security

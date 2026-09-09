@@ -3,7 +3,11 @@
 Ready-to-run searches to locate trust boundaries and risky sinks. Run from the
 plugin/theme root. Each hit is a *candidate* — confirm the missing control by reading it.
 
-> These find where to look. Absence of a guard near a hit is usually the bug.
+> These are heuristic inventories, not vulnerability detection. Trace data and controls
+> across callbacks/files: nearby guards can be ineffective, and effective guards can
+> live elsewhere. Safe calls, comments, and strings may match; no hits proves nothing.
+> The [Bash/ripgrep inventory helper](../scripts/scan-security-sinks.sh) groups common
+> searches without hiding a line merely because it also contains an escaper.
 
 ## 1. Entry points (trust boundaries)
 ```bash
@@ -16,14 +20,15 @@ grep -rn "\$_GET\|\$_POST\|\$_REQUEST\|\$_COOKIE\|\$_FILES\|\$_SERVER" .
 
 ## 2. Missing CSRF / authorization
 ```bash
-# State-changing handlers that never verify a nonce:
+# Inventory handlers and controls, then verify each reachable path:
 grep -rn "wp_ajax_" . | sed 's/:.*//' | sort -u   # then inspect each for check_ajax_referer
 grep -rn "check_admin_referer\|check_ajax_referer\|wp_verify_nonce" .   # where present
 grep -rn "current_user_can" .                                          # where present
 grep -rn "permission_callback'[^,]*__return_true" .                    # open REST writes
 ```
-Cross-reference: an entry point present in (1) but absent from the nonce/capability lists
-above is a likely missing-control bug.
+Cross-reference these inventories, then trace whether the correct check governs each
+operation. A protected REST route may use non-cookie authentication; public reads
+and cron/CLI workers do not automatically require browser nonces.
 
 ## 3. SQL injection sinks
 ```bash
@@ -34,8 +39,8 @@ grep -rn "\. *\$_\(GET\|POST\|REQUEST\)" .        # concatenation of input
 
 ## 4. XSS / output sinks
 ```bash
-grep -rn "echo \|print \|printf(" . | grep -v "esc_\|wp_kses\|esc_url\|wp_json_encode"
-grep -rn "the_\|get_the_" . | grep -v "esc_"      # template output review
+grep -rn "echo \|print \|printf(" .              # include escaped calls; inspect the context
+grep -rn "the_\|get_the_" .                      # template output review
 grep -rn "add_query_arg\|remove_query_arg" .      # must be esc_url() on output
 ```
 
@@ -67,6 +72,7 @@ grep -rn "WP_Filesystem\|request_filesystem_credentials" .  # filesystem writes
 grep -rn "wp_hash_password\|wp_check_password\|wp_generate_password" .  # credential handling
 grep -rn "sodium_crypto_secretbox\|openssl_encrypt" .  # custom encryption
 grep -rn "wc_get_order\|WC_Order" .                 # WooCommerce order access
+```
 
 ## 8. Auth/session, headers & supply-chain sinks
 ```bash
@@ -81,9 +87,9 @@ grep -rn "phar:" .                                       # phar stream wrapper
 
 ## Notes
 - `wp_ajax_nopriv_*` exposes an action to logged-out users — always justify it.
-- `__return_true` as a `permission_callback` on a write is broken access control.
-- A `$wpdb->...` call with no nearby `prepare()` and a `$_` value is injection until proven otherwise.
-- `echo` of a variable with no `esc_*` is XSS until proven otherwise.
+- `__return_true` on a privileged REST operation requires remediation; deliberately public endpoints need an explicit abuse/threat model.
+- Trace dynamic query values into placeholders; a nearby `prepare()` is not proof either way.
+- Review each output context and data source; an escaper on the line does not make every value safe.
 - `unserialize()` / `maybe_unserialize()` on user-supplied data is object injection.
 - `switch_to_blog()` without `restore_current_blog()` or validation is multisite data leakage.
 - Outbound HTTP with user-controlled URLs is an SSRF sink.

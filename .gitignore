@@ -34,6 +34,10 @@ Desktop.ini
 *.bak
 tmp/
 temp/
+*.sql
+*.sql.gz
+*.sqlite
+*.dump
 
 # AI agent local state and local installs.
 # skills/ in the repo root is the source of truth; anything an agent tool
@@ -56,6 +60,10 @@ vendor/
 .phpcs-cache
 .php-cs-fixer.cache
 
+# Python virtualenvs (local validation tooling)
+.venv*/
+venv/
+
 # Node and build caches
 node_modules/
 .npm/
@@ -67,6 +75,10 @@ build/
 *.zip
 *.tar
 *.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.zst
+*.7z
 
 # Local instruction files and redacted security-review reports
 AGENTS.md
@@ -78,5 +90,5 @@ gitleaks-report*.json
 gitleaks-report*.sarif
 
 # Internal working notes (not part of the public repo)
-docs/phase 1/
+docs/phase-1/
 docs/phase-2/

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
 required_headings=(
   "## When to use this skill"
   "## Core principles (and why they matter)"
@@ -21,57 +23,18 @@ warn() {
 }
 
 command -v rg >/dev/null 2>&1 || fail "rg is required."
-
-if ! compgen -G "skills/*/SKILL.md" >/dev/null; then
-  fail "No skill files found at skills/*/SKILL.md."
-fi
+command -v python3 >/dev/null 2>&1 || fail "python3 is required."
+python3 scripts/validate-content.py
 
 for skill_file in skills/*/SKILL.md; do
-  skill_dir="$(basename "$(dirname "$skill_file")")"
-
-  first_line="$(sed -n '1p' "$skill_file")"
-  [ "$first_line" = "---" ] || fail "$skill_file must start with YAML frontmatter."
-
-  frontmatter_end="$(awk 'NR > 1 && $0 == "---" { print NR; exit }' "$skill_file")"
-  [ -n "$frontmatter_end" ] || fail "$skill_file has no closing frontmatter delimiter."
-
-  frontmatter="$(sed -n "1,${frontmatter_end}p" "$skill_file")"
-  name="$(printf '%s\n' "$frontmatter" | awk -F': *' '$1 == "name" { print $2; exit }')"
-  [ -n "$name" ] || fail "$skill_file frontmatter is missing name."
-  [ "$name" = "$skill_dir" ] || fail "$skill_file name '$name' does not match directory '$skill_dir'."
-
-  printf '%s\n' "$frontmatter" | rg -q '^description:' || fail "$skill_file frontmatter is missing description."
-
-  description_value="$(printf '%s\n' "$frontmatter" | awk '
-    /^description:/ {
-      in_desc = 1
-      sub(/^description:[[:space:]]*>?[[:space:]]*/, "")
-      text = text $0
-      next
-    }
-    in_desc && /^[a-zA-Z0-9_-]+:/ { in_desc = 0 }
-    in_desc {
-      sub(/^[[:space:]]+/, "")
-      text = text $0
-    }
-    END { print text }
-  ')"
-
-  description_length="${#description_value}"
-  [ "$description_length" -le 1024 ] || fail "$skill_file description is ${description_length} characters."
-
-  case "$description_value" in
-    "Use when"*) ;;
-    *) fail "$skill_file description must start with 'Use when'." ;;
-  esac
-
   line_count="$(wc -l < "$skill_file")"
   [ "$line_count" -le 500 ] || fail "$skill_file has ${line_count} lines (max 500)."
 
   heading_lines=()
   for heading in "${required_headings[@]}"; do
-    line="$(rg -n -F "$heading" "$skill_file" | cut -d: -f1 | head -n 1 || true)"
+    line="$(rg -n -x -F "$heading" "$skill_file" | cut -d: -f1 || true)"
     [ -n "$line" ] || fail "$skill_file missing heading: $heading"
+    [[ "$line" != *$'\n'* ]] || fail "$skill_file repeats heading: $heading"
     heading_lines+=("$line")
   done
 
@@ -87,6 +50,7 @@ for skill_file in skills/*/SKILL.md; do
 done
 
 if compgen -G "skills/*/references/*.php" >/dev/null; then
+  command -v php >/dev/null 2>&1 || fail "php is required for reference syntax validation."
   while IFS= read -r php_file; do
     php -l "$php_file" >/dev/null || fail "$php_file failed PHP syntax validation."
     if [ "$(basename "$php_file")" = "wp-config-hardening.php" ]; then
@@ -116,7 +80,7 @@ elif [ -x "./phpcs.phar" ]; then
 fi
 
 if [ -n "$phpcs_bin" ] && [ -f "phpcs.xml.dist" ]; then
-  $phpcs_bin --standard=phpcs.xml.dist skills/*/references/*.php || fail "PHPCS found violations."
+  "$phpcs_bin" --standard=phpcs.xml.dist skills/*/references/*.php || fail "PHPCS found violations."
 else
   warn "PHPCS not found or phpcs.xml.dist missing (run without it). CI installs the pinned PHAR + WPCS."
 fi

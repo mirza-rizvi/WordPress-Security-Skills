@@ -1,0 +1,25 @@
+{
+  "name": "Gate an order lookup and status tool with WooCommerce capabilities",
+  "skills": [
+    "secure-plugin-development",
+    "woocommerce-security"
+  ],
+  "query": "Our WooCommerce shop staff need a helper tool: a plugin page that takes an order id from the URL, loads it, and shows the customer's billing name and email, plus a POST form that marks the order completed. I wrote the handler below and it works fine, but please review and finish it before we ship:\n\n$order = wc_get_order( $_GET['order_id'] );\necho '<p>' . $order->get_formatted_billing_full_name() . ' — ' . $order->get_billing_email() . '</p>';\n\nif ( isset( $_POST['complete'] ) ) {\n    $order->set_status( 'completed' );\n    $order->save();\n}",
+  "expected_behavior": [
+    "Recognize that the handler passes the raw $_GET['order_id'] straight to wc_get_order() and lets any visitor read customer PII and flip order status — broken access control",
+    "Cast the id with absint( wp_unslash( $_GET['order_id'] ) ), load it with wc_get_order(), and fail closed with wp_die() when no valid order is found",
+    "Gate every read and write with current_user_can( 'edit_shop_order', $order_id ) (or 'edit_shop_orders'), using WooCommerce shop capabilities instead of edit_posts or manage_options",
+    "Apply the same capability gate to the POST path so $order->set_status() and $order->save() only run for users allowed to edit that order",
+    "Sanitize any user-submitted text with wc_clean(), sanitize_text_field(), or absint() as appropriate, and prefer CRUD setters over raw update_post_meta()",
+    "Escape the billing name and email on output with esc_html() (or esc_attr() in attributes) since customer data is PII",
+    "For the existing POST form, render an action/object-scoped nonce and verify it with check_admin_referer() before changing status; an AJAX variant uses check_ajax_referer()."
+  ],
+  "success_criteria": [
+    "No order data is read, echoed, or updated before current_user_can( 'edit_shop_order', $order_id ) or current_user_can( 'edit_shop_orders' ) passes",
+    "The order id is cast with absint( wp_unslash( ... ) ) and validated through wc_get_order(), with an invalid or missing id failing closed via wp_die()",
+    "WooCommerce capabilities (edit_shop_orders / manage_woocommerce where fitting) are used, not edit_posts or manage_options",
+    "set_status() and save() execute only after the capability check, through the WC_Order CRUD API rather than raw meta writes",
+    "Billing name, email, and any other customer PII are escaped on output with esc_html() or esc_attr()",
+    "Missing or invalid nonce prevents status changes even for an authorized shop manager; valid authorized submissions still work."
+  ]
+}

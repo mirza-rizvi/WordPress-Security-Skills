@@ -1,0 +1,23 @@
+{
+  "name": "Secure AJAX action with nonce verification",
+  "skills": ["secure-plugin-development", "ajax-security"],
+  "query": "I registered a 'vote for this post' AJAX action with add_action( 'wp_ajax_my_plugin_vote', ... ). It increments a post meta counter and returns JSON, works great — but a reviewer said any site can trigger the endpoint because there is no nonce check. Can you fix it so the handler can't be called from off-site?",
+  "expected_behavior": [
+    "Locate the handler registered with add_action( 'wp_ajax_my_plugin_vote', ... ) and confirm no nonce verification runs before the action.",
+    "Verify the request nonce first with check_ajax_referer( 'my_plugin_vote', 'nonce', false ), passing false so a failed check can return JSON instead of dying with -1.",
+    "On nonce failure, reply with wp_send_json_error( ..., 403 ) and stop — the handler never continues after a failed check.",
+    "Add a current_user_can( 'edit_posts' ) check immediately after the nonce check, rejecting with wp_send_json_error( ..., 403 ) when the user lacks the capability.",
+    "Read the post_id from $_POST with isset(), apply wp_unslash(), and sanitize it to a positive integer with absint(), rejecting invalid values with wp_send_json_error( ..., 400 ).",
+    "Perform the vote update (get_post_meta plus update_post_meta) only after the nonce, capability, and input checks all pass.",
+    "Return wp_send_json_success() and stop rather than echoing raw output.",
+    "On the client side, enqueue the script and pass the admin_url( 'admin-ajax.php' ) URL plus the nonce via wp_localize_script() or wp_add_inline_script(), and include the nonce in the request payload."
+  ],
+  "success_criteria": [
+    "check_ajax_referer() is called first in the handler with false as the third argument so failures return JSON.",
+    "Nonce and capability failures reply with wp_send_json_error() and the handler never continues to act (fail closed).",
+    "A current_user_can() capability check runs immediately after nonce verification.",
+    "The post_id from $_POST is read with wp_unslash() and sanitized with absint() before use.",
+    "The handler exits through wp_send_json_success() or wp_send_json_error() instead of echoing output.",
+    "The nonce is passed to the client via wp_localize_script() or wp_add_inline_script() and included in the request to admin-ajax.php."
+  ]
+}

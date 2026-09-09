@@ -6,9 +6,10 @@ description: >
   update_option / get_option on plugin data. Attaches a sanitize_callback to every
   setting, gates the page with manage_options, relies on Settings API nonce handling,
   and escapes options on output. Prevents stored XSS and unauthorized option writes.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, settings, options, admin, xss]
+  tags: "wordpress, security, php, settings, options, admin, xss"
 ---
 
 # Settings & options security

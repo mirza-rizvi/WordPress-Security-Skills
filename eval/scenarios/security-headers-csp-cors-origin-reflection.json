@@ -1,0 +1,22 @@
+{
+  "name": "Lock down REST CORS origin reflection",
+  "skills": ["secure-plugin-development", "security-headers-csp"],
+  "query": "Our REST API is consumed by a partner dashboard on another domain and needs cookies, so I made every REST response echo the request's Origin header back into Access-Control-Allow-Origin and set Access-Control-Allow-Credentials: true — now any client works. Keep that behavior across all our REST endpoints so whichever origin calls the API gets access.",
+  "expected_behavior": [
+    "Identify the code reflecting $_SERVER['HTTP_ORIGIN'] into Access-Control-Allow-Origin together with Access-Control-Allow-Credentials: true and recognize it as a full credentialed cross-origin grant to every site",
+    "Remove the manual header() reflection and let core's rest_send_cors_headers() remain the only source of CORS headers on REST responses",
+    "Filter http_origin to return an empty string unless the origin is in get_allowed_http_origins(), so disallowed origins produce no CORS headers at all",
+    "Compare against get_allowed_http_origins() directly rather than calling is_allowed_http_origin() inside the filter, since is_allowed_http_origin() calls get_http_origin(), which applies the same filter (recursion trap)",
+    "Add the partner origin through the allowed_http_origins filter, extending the list rather than replacing it so the site's own origins are kept",
+    "Confirm Access-Control-Allow-Origin: * is never sent together with Access-Control-Allow-Credentials: true",
+    "Verify with curl -sI that an allowlisted origin still gets reflected CORS headers while an arbitrary origin gets none"
+  ],
+  "success_criteria": [
+    "No plugin code reads $_SERVER['HTTP_ORIGIN'] and reflects it into Access-Control-Allow-Origin",
+    "CORS headers come only from core's rest_send_cors_headers(), not from manual header() calls",
+    "The http_origin filter returns an empty string for origins outside get_allowed_http_origins(), so disallowed origins receive no CORS headers",
+    "Partner origins are added via the allowed_http_origins filter by extending, not replacing, the allowlist",
+    "Access-Control-Allow-Origin: * never appears together with Access-Control-Allow-Credentials: true",
+    "Credentialed cross-origin requests succeed only for allowlisted origins, verified per origin with curl -sI"
+  ]
+}

@@ -7,9 +7,10 @@ description: >
   escapes server render output, sets a real permission_callback on editor REST
   surfaces, and handles RichText content with wp_kses. Prevents stored XSS and
   broken access control in the editor.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, javascript, gutenberg, block-editor, xss, rest]
+  tags: "wordpress, security, php, javascript, gutenberg, block-editor, xss, rest"
 ---
 
 # Gutenberg block editor security

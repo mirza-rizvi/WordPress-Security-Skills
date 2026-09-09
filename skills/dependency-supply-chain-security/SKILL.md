@@ -9,9 +9,10 @@ description: >
   CDN assets via script_loader_tag, and refusal of eval() and remote include
   patterns. Prevents supply-chain compromise through stale, unvetted, or
   remotely loaded third-party code.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, composer, supply-chain, dependencies, sri]
+  tags: "wordpress, security, php, composer, supply-chain, dependencies, sri"
 ---
 
 # Dependency & supply-chain security

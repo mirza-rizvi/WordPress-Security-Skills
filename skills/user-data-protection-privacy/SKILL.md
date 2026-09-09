@@ -6,9 +6,10 @@ description: >
   erasers via wp_privacy_personal_data_exporters / _erasers, declares privacy policy
   content, anonymizes IPs, and minimizes/secures PII. Helps meet GDPR/CCPA obligations.
   Apply proactively whenever code touches personally identifiable information.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, privacy, gdpr, pii, personal-data]
+  tags: "wordpress, security, privacy, gdpr, pii, personal-data"
 ---
 
 # User data protection & privacy
@@ -23,8 +24,9 @@ Use this skill whenever code handles **personal data**:
 - Integrating third-party services that receive user data.
 
 WordPress ships privacy tooling (export/erase requests, policy content) since 4.9.6.
-Plugins that store PII are expected to integrate with it. This is both a legal obligation
-(GDPR/CCPA) and a security concern — the safest data is the data you don't keep.
+Plugins that store PII should integrate with it. Applicable privacy duties depend on
+jurisdiction and the site's processing; these integrations alone do not establish legal
+compliance. Minimizing data also reduces the impact of a security breach.
 
 ## Core principles (and why they matter)
 
@@ -52,18 +54,23 @@ Plugins that store PII are expected to integrate with it. This is both a legal o
 4. Add policy text via `admin_init` → `wp_add_privacy_policy_content()`.
 5. Anonymize IPs at capture; minimize fields; set retention.
 6. Gate any display/export of PII behind capability checks.
+7. For consent-required tracking, configure a real consent manager to block script,
+   pixel, and iframe loading until the relevant category is explicitly allowed. Unknown
+   or denied is not consent. Shared cached HTML must remain tracker-free/inert until
+   the visitor's client-side consent check; a PHP cookie gate alone is unsafe with
+   shared page/CDN caches. Gate server-side collection separately and provide withdrawal.
 
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Storing PII with no export/erase integration
 
 ```php
-// ❌ Non-compliant: data is invisible to WordPress' privacy tools.
+// Missing integration: data is invisible to WordPress' privacy tools.
 add_option( 'my_newsletter_subscribers', array() ); // emails with no exporter/eraser
 ```
 
 ```php
-// ✅ Compliant: register exporter + eraser so requests cover this data.
+// Register exporter + eraser so requests cover this data.
 add_filter( 'wp_privacy_personal_data_exporters', 'my_plugin_register_exporter' );
 add_filter( 'wp_privacy_personal_data_erasers',  'my_plugin_register_eraser' );
 ```
@@ -133,13 +140,54 @@ $wpdb->insert( $table, array( 'email' => $email, 'marketing' => 1 ) );
 
 ```php
 // ✅ Respect explicit consent.
-$consent = ! empty( $_POST['marketing_consent'] ) ? 1 : 0; // verified by nonce upstream
+// The form's opt-in checkbox has value="yes"; nonce verified upstream.
+$consent = isset( $_POST['marketing_consent'] ) && 'yes' === $_POST['marketing_consent'] ? 1 : 0;
 $wpdb->insert(
     $wpdb->prefix . 'my_subs',
     array( 'email' => sanitize_email( wp_unslash( $_POST['email'] ?? '' ) ), 'marketing' => $consent ),
     array( '%s', '%d' )
 );
 ```
+
+### Mistake 6 — Tracking scripts enqueued before consent
+
+```php
+// Risky: consent-required analytics loads before any consent decision.
+add_action( 'wp_enqueue_scripts', function () {
+    wp_enqueue_script( 'my-analytics', 'https://cdn.example.com/analytics.js', array(), '1.0', true );
+} );
+```
+
+For example, with **Cookiebot CMP installed and configured for explicit opt-in**,
+use its documented manual-blocking markup for a statistics script instead of an
+unconditional `wp_enqueue_script()` call. Replace the illustrative URL with the
+actual tracker; do not also load it via a theme, tag manager, or another plugin.
+
+```html
+<!-- Inert in shared cached HTML; Cookiebot activates only for allowed statistics. -->
+<script type="text/plain" data-cookieconsent="statistics"
+        src="https://cdn.example.com/analytics.js"></script>
+```
+
+The selected manager must load correctly and cover every tracking entry point.
+For another manager, use its documented blocking integration, not Cookiebot-specific
+attributes or a made-up consent cookie. A cookie may encode a denial; its presence
+or nonempty value is not permission. WP Consent API is an interoperability plugin,
+not a banner or script blocker, and its consent-type configuration matters.
+
+Blocking only initialization after a normal script `src` has loaded is too late: the
+network request already disclosed data. Keep trackers inert in shared HTML and gate
+server-side tracking separately; do not let a cached consenting response authorize
+another visitor. Also cover tag managers, dynamically inserted embeds, and preloads.
+
+Provide a persistent consent-settings/withdrawal control (for Cookiebot, its Privacy
+Trigger and documented `renew()`/`withdraw()` APIs). On withdrawal or category denial,
+stop future collection and remove optional cookies/storage as appropriate using the
+tracker's documented teardown; reload into a blocked state if scripts cannot be
+safely stopped. Removing a script tag does not undo executed code or already sent
+data. Verify unknown, denied, granted, and withdrawn states in browser network and
+storage tools, including warm shared caches. This is an implementation pattern, not
+a guarantee of GDPR/CCPA or other legal compliance.
 
 ## Correct code examples
 
@@ -160,11 +208,17 @@ helpers too.
 - [ ] IPs anonymized with `wp_privacy_anonymize_ip()` unless full IPs are required.
 - [ ] Only necessary fields collected; retention/cleanup defined.
 - [ ] PII display/export gated behind capability checks.
-- [ ] Consent-optional data gated behind explicit consent.
+- [ ] Consent-optional data is gated behind explicit consent; unknown/denied states do not enable it.
+- [ ] A configured consent manager blocks tracker loading before category opt-in, including shared cached pages.
+- [ ] Consent can be withdrawn; subsequent collection stops and optional storage is handled appropriately.
+- [ ] Cookies and trackers are disclosed in the suggested privacy policy content.
 - [ ] PII not leaked in REST/AJAX responses to under-privileged users.
 - [ ] No PII or secrets written to logs.
 
 ## Official references
+
+- [Cookiebot CMP — blocking markup, consent state, and withdrawal APIs](https://www.cookiebot.com/en/developer/)
+- [WP Consent API — scope and consent-type behavior](https://wordpress.org/plugins/wp-consent-api/)
 
 - [Personal Data Exporters — Plugin Handbook](https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-exporter-to-your-plugin/)
 - [Personal Data Erasers — Plugin Handbook](https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/)

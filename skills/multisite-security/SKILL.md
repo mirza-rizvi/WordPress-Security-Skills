@@ -7,9 +7,10 @@ description: >
   manage_network_options and is_super_admin correctly, restores context with
   restore_current_blog, isolates per-site data, and never trusts a blog id
   from input. Prevents cross-site data leakage and network privilege escalation.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, multisite, network, capabilities]
+  tags: "wordpress, security, php, multisite, network, capabilities"
 ---
 
 # Multisite security

@@ -7,9 +7,10 @@ description: >
   wp_safe_remote_* with wp_http_validate_url, allowlists hosts, blocks internal
   and metadata addresses, and checks is_wp_error plus the response code. Prevents
   server-side request forgery.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, http, ssrf, webhooks]
+  tags: "wordpress, security, php, http, ssrf, webhooks"
 ---
 
 # HTTP API & SSRF prevention

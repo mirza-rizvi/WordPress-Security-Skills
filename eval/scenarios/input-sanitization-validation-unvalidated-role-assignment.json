@@ -1,0 +1,25 @@
+{
+  "name": "Fix role assignment that accepts any submitted value",
+  "skills": [
+    "secure-plugin-development",
+    "input-sanitization-validation"
+  ],
+  "query": "My membership plugin has a profile form where members pick how their profile is listed, and the POST handler cleans the submitted role with sanitize_key() and applies it via $user->set_role(). A tester managed to give themselves administrator by tampering with the form. Fix the handler.",
+  "expected_behavior": [
+    "Locate the handler that reads $_POST['role'] and applies it with $user->set_role()",
+    "Keep shaping the input correctly: guard with isset() and pass it through wp_unslash() then sanitize_key() — recognize that sanitization alone is not the fix",
+    "Recognize that sanitize_key() only cleans the string, so any clean value such as 'administrator' still passes and validation is missing",
+    "Determine whether this is only a profile-display preference. Store a separate allowlisted preference instead of changing WordPress roles; if role changes are intentional, require explicit authorization to promote the target user and a permitted target-role policy.",
+    "Validate the sanitized value against the allowlist with strict comparison using in_array( $role, $allowed, true ) before it is used",
+    "Reject disallowed values without applying a replacement role; keep nonce and per-target authorization checks before mutation.",
+    "Persist only the approved display preference; call set_role() only if an intentionally authorized role-management flow was established."
+  ],
+  "success_criteria": [
+    "The posted role value is still guarded, unslashed with wp_unslash(), and sanitized with sanitize_key()",
+    "An explicit allowlist governs display-preference values or, for an intentional role-management flow, assignable roles.",
+    "Strict allowlist validation precedes persistence; role assignment, if retained, also enforces actor and target authorization.",
+    "Unauthorized requests and disallowed values leave the user role unchanged.",
+    "Members cannot gain administrator, author, or other additional privileges by tampering with a display preference.",
+    "No unvalidated $_POST value reaches $user->set_role()"
+  ]
+}

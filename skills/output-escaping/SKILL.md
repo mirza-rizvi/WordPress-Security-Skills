@@ -6,9 +6,10 @@ description: >
   of output with esc_html, esc_attr, esc_url, esc_js, esc_textarea, or wp_kses_post,
   including the i18n variants (esc_html__, esc_attr_e). Prevents stored and reflected
   XSS. Apply proactively to every echoed variable, even data from the database.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, escaping, xss, output]
+  tags: "wordpress, security, php, escaping, xss, output"
 ---
 
 # Output escaping (XSS prevention)

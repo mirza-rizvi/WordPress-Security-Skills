@@ -6,9 +6,10 @@ description: >
   gates shop actions with WooCommerce capabilities like edit_shop_orders,
   minimizes stored payment data, and escapes customer PII on output. Prevents
   broken access control and PII / order data exposure.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, woocommerce, ecommerce, pii, rest]
+  tags: "wordpress, security, php, woocommerce, ecommerce, pii, rest"
 ---
 
 # WooCommerce security

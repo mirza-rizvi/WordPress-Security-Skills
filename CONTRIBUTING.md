@@ -83,12 +83,20 @@ with relative links (`references/secure-ajax-handler.php`).
 - Secure but simple — no enterprise over-engineering.
 - "✅ Secure" examples must themselves pass the `security-auditing-code-review` checklist.
 
+Scaffold a new skill draft with `python3 scripts/add-skill.py <skill-name>` — it creates an
+explicitly incomplete skill plus scenario that validators refuse until real content lands.
+Never cite an API that the official `skills-ref` validator or your own verification cannot
+confirm.
+
 ## Submitting
 
 1. Fork, branch, add or edit a skill following the contract above.
 2. Verify every cited API on developer.wordpress.org.
-3. Confirm frontmatter parses as YAML and `name` matches the directory.
-4. Check internal links and `references/` paths resolve.
-5. Open a PR describing the AI mistake the change addresses.
+3. Run `./scripts/validate-skills.sh` (needs `rg`, `python3` + PyYAML) and fix what it flags.
+4. Add or update the skill's eval scenario under `eval/scenarios/` (see
+   [eval/scenarios/README.md](eval/scenarios/README.md)); every skill needs at least one.
+5. Check internal links and `references/` paths resolve.
+6. Open a PR describing the AI mistake the change addresses, and disclose AI assistance
+   per [docs/ai-authorship.md](docs/ai-authorship.md).
 
 By contributing you agree your work is licensed under the [MIT License](LICENSE).

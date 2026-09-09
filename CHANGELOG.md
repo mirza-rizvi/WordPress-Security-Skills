@@ -9,6 +9,28 @@ tagged releases begin.
 
 ### Added
 
+- Eval scenario contracts: one JSON per skill under `eval/scenarios/` (task prompt +
+  expected review steps + acceptance criteria), a documented evaluation protocol with
+  stated limits, and structural schema/coverage validation. Scenarios are prompts and
+  rubrics, not executed behavior tests.
+- Frontmatter hardening: every skill now declares `compatibility` (accurate PHP 7.4
+  syntax baseline; per-example version requirements stay in context) and
+  spec-compatible scalar `metadata.tags`; both enforced by validators and CI.
+- Validation tooling: `scripts/validate-content.py` (strict metadata + scenario
+  validation, refuses incomplete drafts), `scripts/add-skill.py` scaffolding generator,
+  `scripts/smoke-install.py` install/discovery smoke, and the official `skills-ref`
+  validator wired into CI alongside the existing structural checks.
+- `security-auditing-code-review`: `scripts/scan-security-sinks.sh`, a read-only
+  heuristic sink/entry-point inventory (documented limits; not an audit).
+- `secure-plugin-development`: `references/decision-tree.md` — route by entry path and
+  data/policy branches instead of loading every skill.
+- `docs/ai-authorship.md`: what AI assistance and automated validation do and do not
+  establish; no human-review claim is made.
+- Content additions: git secret-leak response procedure, mass-assignment allowlist
+  pattern, per-route rate-limit caveats, REST response minimization, consent-manager
+  tracker gating, bot/abuse controls, and a consolidated `go-live-checklist.md`.
+- CI installs ripgrep/PyYAML/skills-ref, runs official per-skill validation and an
+  isolated install smoke before the existing structural checks.
 - 3 new skills closing the last core coverage gaps: `authentication-session-security`,
   `security-headers-csp`, and `dependency-supply-chain-security`.
 - 12 core skills:
@@ -43,6 +65,9 @@ tagged releases begin.
   `.gitleaks.toml` whose single allowlist entry covers one documented fictional
   credential example. Dead developer.wordpress.org links fixed.
 - PHPCS details in reference files (missing `@package`, explicit enqueue args).
+- README: repository URL updated to the canonical `wpultimatesecurity/WordPress-Security-Skills`
+  location after the GitHub transfer (old links redirect, but the prompt and docs now point
+  at the new org directly).
  
 ### Added (initial)
 

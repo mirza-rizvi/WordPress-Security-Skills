@@ -6,9 +6,10 @@ description: >
   attacker-controlled data, prefers json_encode / json_decode, and when
   unserialize is unavoidable passes ['allowed_classes' => false]. Prevents PHP
   object injection and POP-chain remote code execution.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, deserialization, object-injection, rce]
+  tags: "wordpress, security, php, deserialization, object-injection, rce"
 ---
 
 # Object injection & deserialization security

@@ -1,0 +1,22 @@
+{
+  "name": "Close the privilege gap in a nonce-verified action handler",
+  "skills": ["secure-plugin-development", "nonces-csrf-protection"],
+  "query": "Our plugin's admin-post handler that deletes a campaign already calls check_admin_referer( 'delete_campaign', 'campaign_nonce' ), so I assumed it was locked down, but a subscriber-role user managed to trigger it and wipe a campaign. Can you fix includes/class-campaign-admin.php so the delete action is actually protected before we ship this?",
+  "expected_behavior": [
+    "Locate the admin_post_* handler performing the privileged action and confirm it verifies the nonce with check_admin_referer() (or branched wp_verify_nonce()) before anything else.",
+    "Identify the missing half of the pair: the nonce proves the request came from the site but does not authorize the user, so the handler currently lets any logged-in user delete a campaign.",
+    "Add current_user_can() with a capability appropriate to the action (e.g. manage_options) immediately after the nonce verification, before reading any other input.",
+    "Fail closed when the capability check fails: wp_die() with a 403 for form requests, or wp_send_json_error() with 403 for AJAX handlers.",
+    "Keep the nonce verification intact and the action string specific (e.g. delete_campaign_<id>); do not weaken or remove the existing check_admin_referer() call.",
+    "After both checks pass, wp_unslash() and sanitize the input (absint() for the campaign id, sanitize_text_field() for text) before acting on it.",
+    "Finish the flow correctly: wp_safe_redirect() back to the referring admin screen for admin-post handlers, or wp_send_json_success() for AJAX.",
+    "Confirm no execution path reaches the destructive action when either the nonce verification or the capability check fails."
+  ],
+  "success_criteria": [
+    "The handler still verifies the nonce first via check_admin_referer() (or check_ajax_referer()/branched wp_verify_nonce()).",
+    "A current_user_can() capability check runs immediately after the nonce check, with a capability appropriate to deleting a campaign (e.g. manage_options).",
+    "Capability failure fails closed with wp_die() 403 or wp_send_json_error() 403, and the destructive action never runs.",
+    "Input is wp_unslash()-ed and sanitized with absint()/sanitize_text_field() after verification.",
+    "A logged-in user without the required capability can no longer trigger the campaign deletion."
+  ]
+}

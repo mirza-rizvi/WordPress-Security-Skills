@@ -1,0 +1,25 @@
+{
+  "name": "Sanitize registered plugin settings",
+  "skills": [
+    "secure-plugin-development",
+    "settings-options-security"
+  ],
+  "query": "I built a plugin settings page that calls register_setting( 'acme_group', 'acme_settings' ) and its form posts to options.php. A teammate noticed that whatever we type into the fields — including HTML — gets saved into the option verbatim and printed back in the admin notice. Fix the security issue.",
+  "expected_behavior": [
+    "Locate the register_setting() call for the option and confirm its args array has no sanitize_callback, so raw $_POST data reaches the option",
+    "Add a sanitize_callback to register_setting() pointing at a dedicated sanitizer function, and pass 'type' plus a safe 'default' so get_option() returns a known shape",
+    "Implement the sanitizer against an explicit field schema, rejecting malformed shapes and discarding unknown keys. Settings API values from options.php are already unslashed; do not wp_unslash() again in sanitize_callback.",
+    "Normalize flags to 1/0 and drop unknown keys so only cleaned values are returned from the sanitizer",
+    "Keep the form posting to options.php with settings_fields( 'acme_group' ) (plus do_settings_sections() and submit_button()) so core supplies the nonce and capability enforcement",
+    "Gate the page with add_options_page() using the manage_options capability and a current_user_can( 'manage_options' ) guard in the render callback",
+    "Escape every saved value at the point of output with the context-appropriate function (esc_attr() in attributes, esc_textarea() in textareas, esc_html() in markup), including the admin notice"
+  ],
+  "success_criteria": [
+    "The register_setting() call includes a sanitize_callback pointing to a dedicated sanitizer function",
+    "Only declared fields survive; text and URLs use appropriate sanitizers without double-unslashing. Apostrophes and literal backslashes round-trip correctly.",
+    "register_setting() also passes 'type' and a safe 'default' so get_option() returns a known shape instead of raw or false",
+    "No code path writes the option from unsanitized $_POST data (no direct update_option() of raw input)",
+    "The form still posts to options.php with settings_fields(), and the page is gated by manage_options",
+    "Every place the option renders escapes it with esc_attr(), esc_textarea(), or esc_html() for its context"
+  ]
+}

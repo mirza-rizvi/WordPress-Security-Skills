@@ -12,7 +12,7 @@ copy and paste this prompt:
 
 ```text
 Set up the WordPress security skills from
-https://github.com/mirza-rizvi/WordPress-Security-Skills for this project.
+https://github.com/wpultimatesecurity/WordPress-Security-Skills for this project.
 
 Read the repository's README and inspect my agent's existing configuration.
 Use the install location supported by this agent and its current version;
@@ -152,6 +152,20 @@ so any compatible agent can load them. Each is a directory with a `SKILL.md`
 Skills are plain directories — install by copying the ones you want (or the whole `skills/`
 folder) into your agent's skills directory.
 
+### One command (skills CLI)
+
+With Node.js installed, the [skills CLI](https://agentskills.io) can install directly from
+this repository:
+
+```bash
+# Interactive (pick skills and scope):
+npx skills add wpultimatesecurity/WordPress-Security-Skills
+
+# Non-interactive, all skills:
+npx --yes skills add wpultimatesecurity/WordPress-Security-Skills
+```
+
+
 ### Claude Code
 
 ```bash
@@ -235,6 +249,10 @@ before updating your local copies, then repeat discovery and behavior checks.
 New skills and fixes are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the SKILL.md
 contract, description-writing rules, and the WordPress-correctness requirement (verify every
 API against developer.wordpress.org; never invent functions).
+
+Content in this repository is developed with AI assistance under human direction; see
+[docs/ai-authorship.md](docs/ai-authorship.md) for what our validation does and does not
+establish.
 
 ## Official WordPress security references
 

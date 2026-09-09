@@ -1,0 +1,22 @@
+{
+  "name": "Harden shortcode attribute rendering",
+  "skills": ["secure-plugin-development", "shortcode-block-security"],
+  "query": "My plugin's [my_card] shortcode renders `$atts['title']` and `$atts['link']` straight into the card markup like `<h3>{$atts['title']}</h3>`. Contributors use it in posts, so make sure that can't be abused, and add a `style` attribute that switches between card layout classes.",
+  "expected_behavior": [
+    "Locate the callback registered with add_shortcode() and identify that raw $atts values are concatenated into HTML unescaped (stored XSS sink)",
+    "Normalize attributes with shortcode_atts() using a complete default map (title, link, style), noting shortcode_atts() only sets defaults and filters unknown keys — it does not sanitize",
+    "Sanitize each attribute to its expected type: sanitize_text_field() for title, esc_url_raw() for link, and an allowlist comparison for the style value",
+    "Derive the card layout class with sanitize_html_class() so the style input cannot inject markup into the class attribute",
+    "Escape every rendered value for its exact context: esc_html() for the title in the HTML body, esc_url() for the link href, esc_attr() for the class attribute",
+    "Build the markup as a string and return it from the callback instead of echoing",
+    "Explain to the user that a value like [my_card title=\"<script>alert(1)</script>\"] is now inert because it is sanitized and escaped before rendering"
+  ],
+  "success_criteria": [
+    "shortcode_atts() is called with a complete default map before any attribute value is used",
+    "No raw $atts value reaches the output string without passing through an escaping function",
+    "Output uses esc_html() for HTML body content, esc_attr() for attribute contexts, and esc_url() for hrefs",
+    "The style attribute is validated against an allowlist or passed through sanitize_html_class() before being used in a class name",
+    "The shortcode callback returns a string and does not echo",
+    "Rendering [my_card title=\"<script>alert(1)</script>\"] produces escaped output with no executable script"
+  ]
+}

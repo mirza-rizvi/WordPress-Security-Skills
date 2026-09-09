@@ -3,12 +3,13 @@ name: security-auditing-code-review
 description: >
   Use when auditing or code-reviewing an existing WordPress plugin or theme for security
   issues, triaging a vulnerability report, or hardening inherited code. Provides a
-  systematic methodology — locate trust boundaries, grep for missing nonces, capability
-  checks, escaping, and unprepared queries, then triage by severity and report with fixes.
+  systematic methodology — locate trust boundaries, inventory sensitive sinks, trace
+  their controls and data flows, then triage confirmed issues and report with fixes.
   Apply proactively before shipping or when reviewing third-party code.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, audit, code-review, vulnerability, hardening]
+  tags: "wordpress, security, audit, code-review, vulnerability, hardening"
 ---
 
 # Security auditing & code review
@@ -31,12 +32,12 @@ fix it using the relevant skill (`nonces-csrf-protection`, `output-escaping`,
 1. **Follow the data, not the file order.** Trace untrusted input from its entry point
    (`$_GET`/`$_POST`/`$_FILES`/REST) to where it is used (DB, output, filesystem). Bugs
    live on those paths.
-2. **Map trust boundaries first.** Every AJAX action, REST route, form handler, and
-   shortcode is a boundary that needs nonce + capability + sanitize + escape. Enumerate
-   them before reading line by line.
-3. **Absence is the bug.** Most WordPress vulns are *missing* controls — no
-   `current_user_can`, no `wp_verify_nonce`, no `esc_*`, no `prepare()`. Grep for the
-   sinks, then check each for the missing guard.
+2. **Map trust boundaries first.** Enumerate AJAX actions, REST routes, forms,
+   shortcodes, cron jobs, and CLI commands. Decide which need authentication,
+   authorization, CSRF protection, validation, and output escaping for their context.
+3. **Trace controls, not proximity.** A nearby nonce, capability check, escaper, or
+   `prepare()` call does not establish protection. Verify it governs the reachable
+   operation; absence from the same line/file does not establish a vulnerability.
 4. **Confirm exploitability, then rate severity.** Distinguish a real, reachable issue
    from a theoretical one. Rate by impact × reachability (auth required? privilege level?).
 5. **Report with a concrete fix.** Each finding = location, what's wrong, why it matters,
@@ -47,17 +48,32 @@ fix it using the relevant skill (`nonces-csrf-protection`, `output-escaping`,
 
 1. **Inventory entry points:** grep for `wp_ajax_`, `register_rest_route`, `admin_post_`,
    `add_shortcode`, `$_GET`/`$_POST`/`$_REQUEST`/`$_FILES`, form handlers.
-2. **For each, check the four controls:** nonce verified? capability checked? input
-   sanitized (after unslash)? output escaped / queries prepared?
-3. **Grep the sinks:** `$wpdb->query`/`get_results` without `prepare`; `echo`/`print` of
-   variables without `esc_*`; `include`/`require`/`readfile`/`unlink` with input;
-   `move_uploaded_file`; `eval`/`create_function`/`unserialize` of input;
-   `extract()`; `add_query_arg`/`remove_query_arg` echoed unescaped.
+2. **Check applicable controls on each path:** transport-appropriate authentication
+   and CSRF protection, resource-level authorization, shape/type validation,
+   sanitization, output escaping, and safe query construction.
+3. **Inventory sinks**, including safely guarded ones: database calls, output,
+   filesystem operations, uploads, code execution, deserialization, redirects,
+   and outbound requests. Follow the input and controls before labeling any hit.
 4. **Triage:** assign Critical / High / Medium / Low / Info by impact and reachability.
 5. **Report:** file:line, category, severity, description, PoC (if safe), and the fix.
 6. **Re-verify** after fixes; confirm no control was bypassed elsewhere.
 
-See [`references/grep-patterns.md`](references/grep-patterns.md) for ready-to-run searches
+Use the read-only [sink inventory helper](scripts/scan-security-sinks.sh) first
+if Bash and ripgrep (`rg`) are available. From this skill directory:
+
+```bash
+bash scripts/scan-security-sinks.sh /path/to/plugin-or-theme
+```
+
+This is a **heuristic text search, not a security audit or vulnerability detector**.
+It includes safe calls, comments, and strings; it does not prove missing controls.
+No hits is not proof of safety. It searches PHP/PHTML/INC files using ripgrep
+ignore rules, skipping hidden/binary files and symlinks. Dynamic/multiline calls
+and other file types require separate review. Source lines can contain secrets;
+keep the output local and redact before sharing. `--help` explains scope and
+exit codes (0: completed, with or without hits; 2: usage/search error).
+
+See [`references/grep-patterns.md`](references/grep-patterns.md) for additional searches
 and [`references/audit-checklist.md`](references/audit-checklist.md) for the full review pass.
 
 ## Common AI mistakes / anti-patterns

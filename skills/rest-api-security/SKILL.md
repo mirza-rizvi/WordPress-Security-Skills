@@ -6,9 +6,10 @@ description: >
   defines args with sanitize_callback and validate_callback, enforces capabilities and
   per-object checks, and escapes any HTML in responses. Prevents broken access control
   and injection via the REST surface. Apply proactively to every registered route.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, rest-api, authorization, endpoints]
+  tags: "wordpress, security, php, rest-api, authorization, endpoints"
 ---
 
 # REST API security
@@ -34,13 +35,19 @@ vulnerabilities.
 2. **Authorize per method and per object.** A route may allow `GET` publicly but require a
    capability for `POST`. Object routes (`/items/(?P<id>\d+)`) should check the user can act
    on *that* object.
-3. **Declare `args` with sanitize + validate callbacks.** The REST framework will sanitize
-   and validate inputs for you when you describe them — use it instead of ad-hoc parsing.
-4. **Don't rely on nonces for authorization.** The `wp_rest` nonce (cookie auth) proves the
-   request origin, like any nonce; capabilities still decide what's allowed.
+3. **Declare `args` with sanitize + validate callbacks.** The REST framework processes
+   declared inputs, but undeclared params are not automatically rejected or removed.
+   Build write payloads from an explicit field allowlist, never `get_params()` wholesale.
+4. **Don't rely on nonces for authorization.** The `wp_rest` nonce mitigates CSRF with
+   cookie authentication; it does not prove origin or replace capability checks.
 5. **Escape HTML in responses.** JSON is not auto-safe if the client injects values into the
    DOM. Escape/normalize anything that may be rendered as markup.
 6. **Use specific namespaces/versions** (`my-plugin/v1`) and least-privileged callbacks.
+7. **Minimize response payloads.** Return the fields the client renders — never raw
+   objects, rows, or user records. Authorize both the records and the fields exposed;
+   minimization cannot replace permission checks. Core's
+   `?_fields=` parameter lets clients trim further; it complements, not replaces,
+   a small default payload.
 
 ## Step-by-step implementation
 
@@ -49,8 +56,14 @@ vulnerabilities.
    the right capability (and per-object check via the request args).
 3. Define every parameter under `args` with `required`, `type`, `sanitize_callback`,
    `validate_callback`.
-4. In the main `callback`, treat params as already sanitized but still escape on output.
-5. Return `rest_ensure_response()` or a `WP_Error` with an HTTP status.
+4. Use only declared, validated/sanitized params; authorize every target before writing.
+5. Before expensive work, enforce abuse controls and return a `WP_Error` with status
+   `429` on rejection (not `wp_send_json_error()` inside REST). Transient counters are
+   non-atomic, evictable, best-effort only; strict limits need an atomic shared backend
+   or edge/server enforcement. See `ajax-security` for trusted proxy/keying caveats.
+6. Perform the authorized operation; return only the permitted fields with
+   `rest_ensure_response()`, or a `WP_Error` with an HTTP status. Plain JSON text should
+   remain text; escape at an HTML sink or normalize intentional HTML separately.
 
 ## Common AI mistakes / anti-patterns
 
@@ -202,8 +215,37 @@ request. Each route's `permission_callback` is still enforced, so never rely on 
 entry point being "internal" — every inner route must authorize itself. You can also use
 the `rest_authentication_errors` filter to reject authentication globally when needed.
 
-Related: see the `ajax-security` skill for when to use admin-ajax instead of REST, and the
-`http-api-ssrf-prevention` skill for outbound HTTP calls from a REST callback.
+### Mistake 8 — Over-exposing response data
+
+```php
+// ❌ Over-exposed: full user records — emails, logins, roles — to any subscriber.
+$data = array();
+foreach ( my_plugin_get_members() as $member ) {
+    $data[] = $member; // WP_User: user_email, user_login, roles, all of it.
+}
+return rest_ensure_response( $data );
+```
+
+```php
+// After the permission callback and query have authorized this member set:
+// return only the permitted fields the UI needs.
+$data = array();
+foreach ( my_plugin_get_members() as $member ) {
+    $data[] = array(
+        'id'   => absint( $member->ID ),
+        'name' => $member->display_name, // JSON text; use textContent in the client.
+    );
+}
+return rest_ensure_response( $data );
+```
+
+Deciding what may leave the server at all (emails, IPs, order data) is a privacy
+question — see `user-data-protection-privacy`.
+
+Related: see the `ajax-security` skill for when to use admin-ajax instead of REST and
+for the rate-limiting pattern, the `http-api-ssrf-prevention` skill for outbound HTTP
+calls from a REST callback, and the `user-data-protection-privacy` skill for personal
+data in responses.
 
 ## Correct code examples
 
@@ -222,8 +264,14 @@ sanitize/validate, and a `WP_Error` failure path is in
 - [ ] HTML in responses is escaped/normalized.
 - [ ] Errors return `WP_Error` with an explicit HTTP status.
 - [ ] Namespace is versioned and plugin-specific (`my-plugin/v1`).
+- [ ] Responses contain only the fields the client needs — no raw objects or user records.
+- [ ] Write payloads allowlist fields explicitly; undeclared REST params are never persisted wholesale.
+- [ ] Abuse controls run before expensive work; strict quotas do not rely on transient counters.
 
 ## Official references
+
+- [`WP_REST_Request::has_valid_params()`](https://developer.wordpress.org/reference/classes/wp_rest_request/has_valid_params/)
+- [Transients API](https://developer.wordpress.org/apis/transients/)
 
 - [`register_rest_route()`](https://developer.wordpress.org/reference/functions/register_rest_route/)
 - [Adding Custom Endpoints — REST API Handbook](https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/)

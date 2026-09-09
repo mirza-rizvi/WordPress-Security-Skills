@@ -1,0 +1,25 @@
+{
+  "name": "Secure the settings save handler",
+  "skills": [
+    "secure-plugin-development"
+  ],
+  "query": "My plugin has an admin-post.php handler for its settings form. It grabs the submitted value and calls update_option() right away, then runs the nonce and capability checks a few lines further down in case something is wrong. Can you tidy this handler up?",
+  "expected_behavior": [
+    "Identify the flaw: the handler performs the state change (update_option()) before any verification, and stores raw $_POST data",
+    "Verify the nonce first with check_admin_referer() at the top of the handler so a failed CSRF check dies before any work",
+    "Authorize next: if ( ! current_user_can( 'manage_options' ) ) fail closed with wp_die() and a 403 code",
+    "Validate scalar input, then wp_unslash() and sanitize_text_field() for the nonsecret display-label setting.",
+    "Only after verify -> authorize -> sanitize, call update_option() with the sanitized value",
+    "Redirect after processing with wp_safe_redirect() to an admin_url() target and exit",
+    "On the settings page, output the nonce with wp_nonce_field() and escape every dynamic value at the point of echo (esc_attr(), esc_html())",
+    "Confirm the file opens with defined( 'ABSPATH' ) || exit; to block direct HTTP access"
+  ],
+  "success_criteria": [
+    "check_admin_referer() runs before any state-changing call in the handler",
+    "current_user_can( 'manage_options' ) gates the action and failure stops execution (wp_die(), not fall-through)",
+    "The $_POST value passes through wp_unslash() and sanitize_text_field() before it is stored",
+    "update_option() executes only after nonce verification, capability check, and sanitization, in that order",
+    "Post-save flow redirects with wp_safe_redirect() followed by exit; the form uses wp_nonce_field()",
+    "Direct requests cannot execute privileged work outside the WordPress bootstrap."
+  ]
+}

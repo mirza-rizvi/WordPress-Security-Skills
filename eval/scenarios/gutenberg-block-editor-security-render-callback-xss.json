@@ -1,0 +1,26 @@
+{
+  "name": "Fix stored XSS in dynamic block render callback",
+  "skills": [
+    "secure-plugin-development",
+    "gutenberg-block-editor-security"
+  ],
+  "query": "I built a dynamic callout block for my plugin; its PHP render_callback is just `return '<div class=\"callout\">' . $attributes['message'] . '</div>';`. During review we noticed an editor user could save `<img src=x onerror=alert(1)>` as the message and it fires for every visitor viewing the post. Please make the block render safely.",
+  "expected_behavior": [
+    "Locate the callout block's render_callback registered via register_block_type() and confirm the message attribute reaches the returned markup unescaped",
+    "Treat block attributes as user input: the declared type in block.json validates shape but does not sanitize HTML or JavaScript",
+    "Sanitize the message attribute before use with sanitize_text_field(), guarding with isset() and a default value per the skill's pattern",
+    "Escape the value for its HTML context with esc_html() in the string the callback returns",
+    "If any secondary attribute (e.g. a level or tone) is rendered into the class or an attribute context, constrain it with an allowlist plus sanitize_key()/sanitize_html_class() and get_block_wrapper_attributes(), or escape with esc_attr()/esc_url() as the context requires",
+    "If the block is changed to allow rich markup in the message, constrain the stored value with wp_kses_post() instead of raw storage",
+    "Re-check the whole callback so no attribute is concatenated into the returned markup without sanitization and escaping",
+    "Confirm the fix against the reported payload: the onerror injection no longer executes and renders as inert text"
+  ],
+  "success_criteria": [
+    "The render_callback sanitizes the message attribute (e.g. sanitize_text_field()) before it is used",
+    "Rendered output escapes the attribute for its context (esc_html() for HTML content)",
+    "The reported onerror payload never executes; text-only or explicitly allowlisted rich-content behavior is preserved.",
+    "No block attribute is concatenated into the returned markup without sanitization and escaping",
+    "Any attribute placed in a class or attribute context is constrained (allowlist with sanitize_key()/sanitize_html_class()) or escaped (esc_attr()/esc_url())",
+    "The block still registers via register_block_type() and renders its intended callout markup, so functionality is preserved"
+  ]
+}

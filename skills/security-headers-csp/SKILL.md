@@ -10,9 +10,10 @@ description: >
   REST origin restriction through core's allowlist. Headers are the second XSS
   layer after output escaping, and they also stop clickjacking and MIME
   sniffing.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, http-headers, csp, clickjacking, cors]
+  tags: "wordpress, security, php, http-headers, csp, clickjacking, cors"
 ---
 
 # HTTP security headers, CSP & cookie flags

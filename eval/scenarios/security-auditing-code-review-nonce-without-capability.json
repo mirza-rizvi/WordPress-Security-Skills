@@ -1,0 +1,25 @@
+{
+  "name": "Security audit of a nonce-only user deletion handler",
+  "skills": [
+    "secure-plugin-development",
+    "security-auditing-code-review"
+  ],
+  "query": "We ship next week and I want a security sign-off on our user-moderation plugin before release. The admin handler calls check_admin_referer( 'um_delete_user' ) before wp_delete_user( absint( $_POST['user_id'] ) ), and QA already tested the nonce flow end to end. Can you review that handler and confirm it's ready to ship?",
+  "expected_behavior": [
+    "Treat the handler as a trust boundary: locate it via the wp_ajax_/admin_post_ entry-point inventory and read what the code actually does rather than trusting the nonce test report.",
+    "Verify the CSRF control independently: confirm check_admin_referer( 'um_delete_user' ) (or wp_verify_nonce()/check_ajax_referer()) runs before any state change.",
+    "Check authorization as a separate control: look for current_user_can() gating the same path and recognize that a passing nonce does not imply a capability check.",
+    "Cross-reference the controls and flag the absence: wp_delete_user() runs with no current_user_can() check, so any authenticated subscriber who obtains the nonce can delete users — absence of the guard is the bug.",
+    "Check the remaining controls on the path: user_id is read from $_POST and cast with absint() (fine), and confirm no unslashed input or unescaped output elsewhere in the handler.",
+    "Establish nonce acquisition, target-user restrictions, and actual reachable impact before assigning severity; separate confirmed exploitation from assumptions and do not treat passing CSRF tests as authorization evidence.",
+    "Report the finding with file:line, category, severity, description, and impact, and include a concrete fix: add current_user_can( 'delete_user', $target_id ) before wp_delete_user() and reject with an error when it fails.",
+    "Re-verify the corrected path end to end and confirm no other state-changing entry point in the plugin relies on a nonce alone."
+  ],
+  "success_criteria": [
+    "The audit verifies nonce verification (check_admin_referer()) AND checks current_user_can() independently on the same state-changing path, never treating one as implying the other.",
+    "The identified finding is the missing capability guard before wp_delete_user(), not cosmetic/style issues on otherwise correct code.",
+    "The finding cites file/line, realistic exploit prerequisites, and evidence-based severity rather than prescribing a rating before investigation.",
+    "The report includes concrete corrected code that adds current_user_can( 'delete_user', $target_id ) before the state change and fails closed on missing capability.",
+    "The review confirms the existing input handling (absint()) and re-verifies no other control or entry point is bypassed."
+  ]
+}

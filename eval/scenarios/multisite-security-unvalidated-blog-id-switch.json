@@ -1,0 +1,24 @@
+{
+  "name": "Validate blog id before cross-site reads",
+  "skills": ["secure-plugin-development", "multisite-security"],
+  "query": "Our multisite plugin has an admin page that reads a blog_id from the URL and uses switch_to_blog() to display that site's recent posts in a dashboard widget. Review it and get it ready for release.",
+  "expected_behavior": [
+    "Identify the handler that reads blog_id from the request and the switch_to_blog() call that trusts it",
+    "Gate the multisite-specific code with is_multisite()",
+    "Sanitize the input with wp_unslash() and absint() instead of trusting the raw blog_id",
+    "Confirm the target site exists with get_site() before switching",
+    "Confirm the current user may act on that site with is_user_member_of_blog( get_current_user_id(), $blog_id ) or current_user_can( 'manage_network' )",
+    "Wrap the operation in switch_to_blog() with a matching restore_current_blog() on every path, including early error returns",
+    "After switching, re-check capabilities in the new context with current_user_can() or user_can() if the action is privileged",
+    "Sanitize remaining inputs with sanitize_text_field() and escape all output with esc_html()",
+    "Fail closed with wp_die() or WP_Error instead of silently falling back to the current site"
+  ],
+  "success_criteria": [
+    "blog_id from input is cast with absint() and validated with get_site() before any switch_to_blog() call",
+    "The user's relationship to the target site is verified with is_user_member_of_blog() or a manage_network capability check before switching",
+    "Every switch_to_blog() has a matching restore_current_blog(), including on early-return and error paths",
+    "Data fetched from the target site is never echoed unescaped; output uses esc_html()",
+    "The handler fails closed with wp_die() or WP_Error rather than defaulting to the current site",
+    "Raw request values are unslashed with wp_unslash() and sanitized before use"
+  ]
+}

@@ -6,9 +6,10 @@ description: >
   wp_check_password, generates tokens with wp_generate_password, keeps secrets
   out of code and the database in plaintext, and uses Application Passwords for
   API auth. Prevents credential leakage and insecure storage.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, secrets, credentials, tokens, passwords]
+  tags: "wordpress, security, php, secrets, credentials, tokens, passwords"
 ---
 
 # Secrets & credentials management
@@ -57,6 +58,31 @@ Related: see the `nonces-csrf-protection` skill for CSRF tokens and the
 4. For tokens: generate with `wp_generate_password( $length, false )`; store only a hash if you
    need to verify it later.
 5. Sanitize any log/export output to redact known secret keys.
+6. **If a secret leaks, respond in this order:**
+   1. **Rotate first.** Assume compromise the moment the secret left your control — once
+      pushed to a remote, treat it as captured (clones, forks, and scrapers may already
+      hold it). Issue a new key at the provider, then update the `wp-config` constant or
+      re-save the encrypted option, and revoke the old key; issuing a replacement alone
+      may leave the leaked key usable. For active abuse, revoke immediately.
+   2. **Revoke what rotation cannot cover.** Delete leaked Application Passwords
+      (Users → Profile → Application Passwords) and destroy sessions for affected users
+      with `WP_Session_Tokens::get_instance( $affected_user_id )->destroy_all()` for
+      each trusted, verified affected user ID. `wp_destroy_all_sessions()` targets
+      only the current user, not an arbitrary affected user. Session revocation does
+      not revoke Application Passwords. If `wp-config.php` leaked, rotate all eight
+      keys/salts and exposed database/service credentials. If an encryption key
+      changes, re-encrypt retained secrets before discarding it; salt-derived keys
+      also change when salts rotate. See `wp-hardening-best-practices`.
+   3. **Consider history cleanup after revocation, never instead.** If needed, plan a
+      `git filter-repo` rewrite with repository owners and collaborators. Do not
+      automatically rewrite history or force-push: publishing rewritten history is
+      destructive and requires explicit approval and coordinated protection of
+      others' work. Old clones still contain the secret and can reintroduce it;
+      arrange re-cloning or careful cleanup. Forks and cached views need separate
+      coordination; consult GitHub Support's removal criteria where applicable.
+   4. **Add push protection** to block supported secrets when pushing to GitHub, not
+      when making local commits. Use local secret scanning/pre-commit checks for
+      earlier feedback; neither catches every secret or replaces safe handling.
 
 ## Common AI mistakes / anti-patterns
 
@@ -159,9 +185,16 @@ encrypted in options is in [`references/secure-secret-storage.php`](references/s
 - [ ] Tokens are generated with `wp_generate_password()` (or `wp_create_nonce()` for short-lived CSRF).
 - [ ] Stored tokens are verified against a hash, not compared in plaintext.
 - [ ] Secrets are never echoed, logged, exported, or sent to the browser.
+- [ ] Leaked credentials are revoked/rotated; affected users' sessions are revoked when warranted.
+- [ ] Any history rewrite/publication has explicit approval and coordinated clone/fork cleanup.
 - [ ] Settings forms that collect secrets use nonce + capability + HTTPS.
 
 ## Official references
+
+- [`wp_destroy_all_sessions()` — current user only](https://developer.wordpress.org/reference/functions/wp_destroy_all_sessions/)
+- [`WP_Session_Tokens::get_instance()`](https://developer.wordpress.org/reference/classes/wp_session_tokens/get_instance/)
+- [GitHub — removing sensitive data](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)
+- [GitHub — push protection](https://docs.github.com/en/code-security/concepts/secret-security/push-protection)
 
 - [`wp_hash_password()`](https://developer.wordpress.org/reference/functions/wp_hash_password/)
 - [`wp_check_password()`](https://developer.wordpress.org/reference/functions/wp_check_password/)

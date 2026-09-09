@@ -8,9 +8,10 @@ description: >
   filter keyed on username + IP, destroys sessions after password or role
   changes, makes login error messages uniform to stop user enumeration, and
   validates redirect_to with wp_safe_redirect() to close open redirects.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, authentication, sessions, login]
+  tags: "wordpress, security, php, authentication, sessions, login"
 ---
 
 # Authentication & session security

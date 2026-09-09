@@ -7,9 +7,10 @@ description: >
   authorization against stored context rather than current_user_can, keeps
   secrets out of cron URLs, and validates any stored input the job consumes.
   Prevents unauthenticated privileged actions via the cron surface.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, cron, wp-cron, background-jobs]
+  tags: "wordpress, security, php, cron, wp-cron, background-jobs"
 ---
 
 # Cron & background job security

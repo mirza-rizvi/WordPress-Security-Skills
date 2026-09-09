@@ -7,9 +7,10 @@ description: >
   capability + nonce + sanitize + escape flow, prepared queries, and safe defaults —
   and routes to the focused security skills for each concern. Apply proactively at
   the start of any WordPress build.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, plugin, theme, baseline]
+  tags: "wordpress, security, php, plugin, theme, baseline"
 ---
 
 # Secure plugin & theme development (baseline)
@@ -24,37 +25,11 @@ a feature that crosses a trust boundary:
 - Adding admin pages, settings, shortcodes, blocks, widgets, or REST routes.
 - Reviewing an existing plugin to bring it up to a secure baseline.
 
-This is the **router** skill. It gives the end-to-end secure flow, then points to the
-focused skills for each step:
-
-- Input handling: `input-sanitization-validation`.
-- Output / XSS: `output-escaping`.
-- CSRF: `nonces-csrf-protection`.
-- Authorization: `capability-permission-checks`.
-- Database: `sql-injection-prevention`.
-- Uploads: `file-upload-security`.
-- REST: `rest-api-security`.
-- Hard config: `wp-hardening-best-practices`.
-- Auditing: `security-auditing-code-review`.
-- Privacy: `user-data-protection-privacy`.
-- AJAX: `ajax-security`.
-- Settings/options: `settings-options-security`.
-- Outbound HTTP / SSRF: `http-api-ssrf-prevention`.
-- Shortcodes & dynamic blocks: `shortcode-block-security`.
-- Serialization: `object-injection-deserialization`.
-- Filesystem: `filesystem-security`.
-- Secrets: `secrets-credentials-management`.
-- Cron: `cron-background-job-security`.
-- Multisite: `multisite-security`.
-- Block editor: `gutenberg-block-editor-security`.
-- WP-CLI: `wp-cli-security`.
-- WooCommerce: `woocommerce-security`.
-- Dependencies & supply chain: `dependency-supply-chain-security`.
-- Authentication & sessions: `authentication-session-security`.
-- Security headers / CSP: `security-headers-csp`.
-
-Related: see the `object-injection-deserialization` skill whenever you store or read
-serialized PHP, and the `secrets-credentials-management` skill for API keys and tokens.
+This is the **router** skill. Follow the
+[security decision tree](references/decision-tree.md): choose the entry path
+(browser/API, renderer, cron, or CLI), then add the relevant data and policy
+branches. It explains when to combine focused skills and when browser nonce
+checks do not apply; do not load every skill for every task.
 
 ## Core principles (and why they matter)
 
@@ -63,11 +38,12 @@ serialized PHP, and the `secrets-credentials-management` skill for API keys and 
    and untrusted again the moment it is echoed. These are two separate jobs.
 2. **Block direct file access.** Plugin files are reachable by URL. Without an `ABSPATH`
    guard, an attacker can execute them outside WordPress, bypassing all your checks.
-3. **Authenticate the request, then authorize the user.** Nonce (CSRF) + capability
-   (`current_user_can`) on every state-changing action — neither replaces the other.
-4. **Use core APIs, not hand-rolled code.** Core's sanitize/escape/DB/HTTP functions are
-   audited and maintained. Reinventing them (manual SQL, `file_get_contents` for URLs,
-   custom escaping) reintroduces solved bugs.
+3. **Separate authentication, CSRF, and authorization.** Use a nonce for
+   cookie-authenticated state changes and an appropriate capability/object check for
+   privileged actions. REST API credentials, cron, and CLI have different trust
+   models; follow the decision tree rather than adding browser checks everywhere.
+4. **Use core APIs, not hand-rolled code.** Prefer maintained sanitize/escape/DB/HTTP
+   APIs, but choose the API and its arguments for the actual trust boundary.
 5. **Least privilege by default.** Default options to the safe value, scope capabilities
    tightly, and expose the minimum surface.
 6. **Fail closed.** On any failed check, stop and return an error — never fall through.
@@ -77,12 +53,12 @@ serialized PHP, and the `secrets-credentials-management` skill for API keys and 
 1. **Guard the file:** `defined( 'ABSPATH' ) || exit;` at the top of every PHP file.
 2. **Namespace everything:** prefix functions, hooks, options, and globals (e.g.
    `my_plugin_*`) to avoid collisions and accidental overrides.
-3. **For each request handler**, apply the flow in order:
-   1. Verify nonce → see `nonces-csrf-protection`.
-   2. Check capability → see `capability-permission-checks`.
-   3. `wp_unslash()` + sanitize input → see `input-sanitization-validation`.
-   4. Use `$wpdb->prepare()` for any custom query → see `sql-injection-prevention`.
-   5. Escape on output → see `output-escaping`.
+3. **Choose the handler trust model** using the [decision tree](references/decision-tree.md):
+   1. Apply transport-appropriate authentication and CSRF protection.
+   2. Check authority over the action and specific resource.
+   3. Validate input shape/type, unslash WordPress-slashed request input, and sanitize.
+   4. Use `$wpdb->prepare()` for dynamic values in custom queries.
+   5. Escape at each output sink for its actual context.
 4. **Set safe defaults** for all options; validate on save and on read.
 5. **Enqueue assets properly** (`wp_enqueue_script/style`) and pass data via
    `wp_localize_script()` rather than inline-echoing PHP into JS.

@@ -6,9 +6,10 @@ description: >
   current_user_can() using the correct capability (not roles), including per-object
   checks like edit_post, and pairs the check with a nonce. Prevents privilege
   escalation and broken access control. Apply proactively to every privileged code path.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, capabilities, authorization, access-control]
+  tags: "wordpress, security, php, capabilities, authorization, access-control"
 ---
 
 # Capability & permission checks (authorization)

@@ -7,9 +7,10 @@ description: >
   sanitize_email, absint, sanitize_key, wp_kses_post, esc_url_raw) and validates
   values against expected sets. Apply proactively before storing or using any
   untrusted value.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, sanitization, validation, input]
+  tags: "wordpress, security, php, sanitization, validation, input"
 ---
 
 # Input sanitization & validation
@@ -149,6 +150,65 @@ wp_safe_redirect( $redirect );
 exit;
 ```
 
+### Mistake 7 — Trusting the whole request array (mass assignment)
+
+```php
+// ❌ Insecure: every client-supplied field is written through — including ones
+// the form never rendered. A forged POST adds post_author or post_status=publish.
+wp_update_post( wp_unslash( $_POST['post'] ) );
+
+foreach ( $_POST['settings'] as $key => $value ) {
+    update_user_meta( $user_id, 'my_plugin_' . sanitize_key( $key ), $value );
+}
+```
+
+```php
+// Inside an authenticated admin-post handler; the form uses
+// wp_nonce_field( 'my_plugin_edit_post_' . $post_id ).
+$raw = $_POST['post'] ?? null;
+if ( ! is_array( $raw )
+    || ! isset( $raw['ID'], $raw['post_title'], $raw['post_content'] )
+    || ! is_string( $raw['ID'] )
+    || ! is_string( $raw['post_title'] )
+    || ! is_string( $raw['post_content'] )
+) {
+    wp_die( 'Invalid payload.', '', array( 'response' => 400 ) );
+}
+$post_id = filter_var( wp_unslash( $raw['ID'] ), FILTER_VALIDATE_INT, array(
+    'options' => array( 'min_range' => 1 ),
+) );
+if ( false === $post_id ) {
+    wp_die( 'Invalid post ID.', '', array( 'response' => 400 ) );
+}
+check_admin_referer( 'my_plugin_edit_post_' . $post_id );
+$post = get_post( $post_id );
+if ( ! $post || 'post' !== $post->post_type || ! current_user_can( 'edit_post', $post_id ) ) {
+    wp_die( 'Forbidden.', '', array( 'response' => 403 ) );
+}
+// Build only the allowed fields. Never merge the request back into this array.
+$data = array(
+    'ID'           => $post_id,
+    'post_title'   => sanitize_text_field( wp_unslash( $raw['post_title'] ) ),
+    'post_content' => wp_kses_post( wp_unslash( $raw['post_content'] ) ),
+);
+$result = wp_update_post( wp_slash( $data ), true );
+if ( is_wp_error( $result ) ) {
+    wp_die( 'Update failed.', '', array( 'response' => 500 ) );
+}
+```
+
+Mass assignment writes client-selected fields that the endpoint never intended to
+expose. `wp_update_post()` does not perform the caller's capability check; its
+`post_author` and `post_status` fields must not become writable by accident. A user
+role is not a post field, but generic user/meta writers have analogous risks. Avoid
+`extract( $_POST )` too: it lets request keys overwrite local variables.
+
+For REST routes, `args` validates declared parameters; it does **not** automatically
+reject or remove undeclared parameters. Construct an explicit persistence payload
+rather than forwarding `$request->get_params()`. The Settings API can store one
+array option, but its `sanitize_callback` must validate shape and build an explicit
+allowlist of nested fields. Authorization and CSRF protection remain separate.
+
 Related: see the `output-escaping` skill for the redirect "escape" context and the
 `settings-options-security` skill for recursively sanitizing nested option arrays.
 
@@ -184,9 +244,14 @@ function my_plugin_sanitize_settings( $input ) {
 - [ ] Values are validated against allowed sets / ranges after sanitizing.
 - [ ] Arrays are sanitized element-by-element (`array_map`).
 - [ ] URLs use `esc_url_raw()` for storage (`esc_url()` for display).
+- [ ] Bulk updates validate container/scalar shapes, authorize each target object, and build explicit field allowlists.
 - [ ] Settings API registrations supply a `sanitize_callback`.
 
 ## Official references
+
+- [`WP_REST_Request::has_valid_params()`](https://developer.wordpress.org/reference/classes/wp_rest_request/has_valid_params/)
+- [`wp_update_post()`](https://developer.wordpress.org/reference/functions/wp_update_post/)
+- [`current_user_can()` — object capabilities](https://developer.wordpress.org/reference/functions/current_user_can/)
 
 - [Data Validation — Common APIs Handbook](https://developer.wordpress.org/apis/security/data-validation/)
 - [Sanitizing Data — Plugin Handbook](https://developer.wordpress.org/apis/security/sanitizing/)

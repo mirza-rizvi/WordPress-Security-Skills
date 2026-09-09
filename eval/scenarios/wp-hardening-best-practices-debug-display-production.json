@@ -1,0 +1,23 @@
+{
+  "name": "Turn off debug output before production launch",
+  "skills": ["secure-plugin-development", "wp-hardening-best-practices"],
+  "query": "We launch tomorrow. I enabled WP_DEBUG and WP_DEBUG_DISPLAY last week to chase down a plugin conflict and never turned them off — yesterday a visitor sent me a screenshot of a red PHP warning with file paths in it. Can you get the site's configuration production-ready?",
+  "expected_behavior": [
+    "Locate the debug settings in wp-config.php and identify that WP_DEBUG and WP_DEBUG_DISPLAY are both true on a live site, leaking paths, queries, and secrets to visitors",
+    "Set define( 'WP_DEBUG', false ) for production",
+    "Set define( 'WP_DEBUG_DISPLAY', false ) so errors are never rendered to visitors",
+    "Add @ini_set( 'display_errors', '0' ) as a server-level guard against display of errors",
+    "If debug logging is required, set define( 'WP_DEBUG_LOG', true ) only together with a server rule (Require all denied in .htaccess or deny all in nginx) blocking wp-content/debug.log from the web",
+    "While hardening wp-config.php, verify the companion production constants from the skill's reference: unique salts for all eight AUTH_KEY/AUTH_SALT through NONCE_KEY/NONCE_SALT values, DISALLOW_FILE_EDIT set to true, and FORCE_SSL_ADMIN set to true",
+    "Confirm least-privilege filesystem permissions: wp-config.php at 640/600, files 644, directories 755",
+    "Verify as an unauthenticated visitor that the previously reported page no longer renders any PHP errors or warnings"
+  ],
+  "success_criteria": [
+    "wp-config.php no longer defines WP_DEBUG as true with WP_DEBUG_DISPLAY as true; display of errors is disabled in production",
+    "display_errors is explicitly disabled via @ini_set( 'display_errors', '0' )",
+    "If WP_DEBUG_LOG is enabled, a server rule blocks wp-content/debug.log from direct web access",
+    "The page that previously showed the PHP warning renders no error output to unauthenticated visitors",
+    "Companion hardening constants are present: unique salts, DISALLOW_FILE_EDIT true, FORCE_SSL_ADMIN true",
+    "wp-config.php permissions are restricted to 640 or 600"
+  ]
+}

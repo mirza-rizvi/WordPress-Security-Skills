@@ -8,9 +8,10 @@ description: >
   current_user_can, unslashes and sanitizes every field, and replies with
   wp_send_json_success / wp_send_json_error. Prevents CSRF, broken access
   control, and injection on the AJAX surface.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, javascript, ajax, csrf, nonce]
+  tags: "wordpress, security, php, javascript, ajax, csrf, nonce"
 ---
 
 # AJAX security
@@ -37,8 +38,8 @@ Related: see the `nonces-csrf-protection` skill for the full nonce lifecycle and
 1. **`wp_ajax_*` vs `wp_ajax_nopriv_*` are different trust boundaries.** `nopriv` fires for
    anonymous visitors; use it only for truly public actions. Privileged actions must use
    `wp_ajax_*`.
-2. **Nonce + capability, always together.** `check_ajax_referer()` proves the request came
-   from your site; `current_user_can()` proves the user is allowed to perform the action.
+2. **Nonce + capability for privileged actions.** `check_ajax_referer()` checks a CSRF
+   token, not authenticated origin or authorization; `current_user_can()` checks permission.
 3. **Sanitize every input field.** `$_POST` values in AJAX are just as attacker-controllable
    as any other request. `wp_unslash()` then sanitize to type before use.
 4. **Exit through `wp_send_json_*` or `wp_die()`.** Never echo raw output and fall through.
@@ -47,6 +48,11 @@ Related: see the `nonces-csrf-protection` skill for the full nonce lifecycle and
    replayed to delete item 99.
 6. **Fail closed.** Any failed check returns a JSON error or dies; the handler never continues
    to act.
+7. **Throttle anonymous and expensive actions before the work.** Public nonces can be
+   obtained and replayed by attackers; they are not rate limits. Transient counters
+   are best-effort load shedding only: read/increment/write is non-atomic and cached
+   entries can disappear early. Strict limits need an atomic shared backend or an
+   edge/server limiter with defined windows, trusted client identity, and failure policy.
 
 ## Step-by-step implementation
 
@@ -59,8 +65,11 @@ Related: see the `nonces-csrf-protection` skill for the full nonce lifecycle and
 4. Check `current_user_can()` immediately after the nonce.
 5. `wp_unslash()` and sanitize every `$_POST` / `$_GET` field, using the right sanitizer for the
    type (`absint`, `sanitize_text_field`, `sanitize_key`, `sanitize_email`, etc.).
-6. Perform the action.
-7. Return `wp_send_json_success()` or `wp_send_json_error()` and stop.
+6. Enforce the abuse policy **before** queries, mail, or other expensive actions; return
+   `wp_send_json_error( ..., 429 )` when rejected. Use an atomic limiter where bypass
+   would create a security or cost risk; a transient is only a best-effort supplement.
+7. Perform the authorized action.
+8. Return `wp_send_json_success()` or `wp_send_json_error()` and stop.
 
 ## Common AI mistakes / anti-patterns
 
@@ -155,6 +164,64 @@ if ( ! current_user_can( 'manage_options' ) ) {
 }
 ```
 
+### Mistake 6 — Unthrottled public action
+
+```php
+// ❌ Insecure: anonymous endpoint, no rate limit — unbounded cost per visitor.
+add_action( 'wp_ajax_nopriv_my_plugin_search', 'my_plugin_ajax_search' );
+function my_plugin_ajax_search() {
+    $q = isset( $_POST['q'] ) ? sanitize_text_field( wp_unslash( $_POST['q'] ) ) : '';
+    wp_send_json_success( my_plugin_run_expensive_query( $q ) );
+}
+```
+
+```php
+// Best-effort only: public, read-only search with bounded output.
+add_action( 'wp_ajax_nopriv_my_plugin_search', 'my_plugin_ajax_search' );
+function my_plugin_ajax_search() {
+    if ( ! isset( $_POST['q'] ) || ! is_string( $_POST['q'] ) || strlen( $_POST['q'] ) > 200 ) {
+        wp_send_json_error( array( 'message' => 'Invalid query.' ), 400 );
+    }
+    $q = sanitize_text_field( wp_unslash( $_POST['q'] ) );
+    if ( '' === $q ) {
+        wp_send_json_error( array( 'message' => 'Query required.' ), 400 );
+    }
+    // Fixed minute buckets; counters can race or be evicted. Not a strict quota.
+    $ip     = $_SERVER['REMOTE_ADDR'] ?? '';
+    $window = intdiv( time(), MINUTE_IN_SECONDS );
+    $key    = 'my_plugin_rl_' . wp_hash( 'search|' . $ip . '|' . $window );
+    $count  = (int) get_transient( $key );
+    if ( $count >= 20 ) {
+        wp_send_json_error( array( 'message' => __( 'Too many requests.', 'my-plugin' ) ), 429 );
+    }
+    set_transient( $key, $count + 1, MINUTE_IN_SECONDS );
+
+    // The counter is checked before the query, never after sending the response.
+    $ids = get_posts( array(
+        's'           => $q,
+        'post_type'   => 'post',
+        'post_status' => 'publish',
+        'numberposts' => 10,
+        'fields'      => 'ids',
+    ) );
+    wp_send_json_success( $ids );
+}
+```
+
+This read-only public search does not use a nonce as an abuse control. State-changing
+or privileged handlers still need their CSRF and capability checks. Fixed windows
+allow bursts across boundaries; parallel requests can lose counter increments, and
+cache eviction/storage failure can reset this best-effort counter. Do not use it as
+the sole control for mail sending, paid APIs, voting integrity, or brute-force defense.
+
+`REMOTE_ADDR` identifies the direct peer: behind a proxy it may identify the proxy,
+not the visitor, and shared NATs group users together. Only trust forwarded addresses
+after a configured trusted proxy strips client-supplied headers and supplies a
+validated address; never read arbitrary `X-Forwarded-For` directly. Strict distributed
+limits need an atomic shared operation (including expiry, e.g. a Redis script), or
+an edge/server limiter on all relevant routes. See `authentication-session-security`
+for login-specific considerations.
+
 ## Correct code examples
 
 A complete, copy-paste-ready AJAX handler (PHP + JavaScript) is in
@@ -171,8 +238,12 @@ A complete, copy-paste-ready AJAX handler (PHP + JavaScript) is in
 - [ ] Output inside JSON responses is escaped for its context (`esc_html`, `esc_attr`, `esc_url`).
 - [ ] The nonce action string is specific and scoped (e.g., includes an object id).
 - [ ] Secrets are never returned to the browser or logged.
+- [ ] Abuse controls run before expensive actions; strict limits use atomic shared or edge enforcement, not transients.
+- [ ] Client identity accounts for trusted proxies/shared IPs; arbitrary forwarded headers are not trusted.
 
 ## Official references
+
+- [Transients API — early expiry and caching semantics](https://developer.wordpress.org/apis/transients/)
 
 - [AJAX in Plugins — Plugin Handbook](https://developer.wordpress.org/plugins/javascript/ajax/)
 - [`check_ajax_referer()`](https://developer.wordpress.org/reference/functions/check_ajax_referer/)

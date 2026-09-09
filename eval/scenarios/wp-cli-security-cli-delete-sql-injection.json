@@ -1,0 +1,23 @@
+{
+  "name": "Secure a WP-CLI purge command against SQL injection",
+  "skills": [
+    "secure-plugin-development",
+    "wp-cli-security"
+  ],
+  "query": "This plugin has a WP-CLI command `wp my-plugin purge` that deletes rows older than a given number of days from a custom logs table. It runs fine locally and we want to schedule it in CI, so give it a security once-over and fix anything risky.",
+  "expected_behavior": [
+    "Locate the command registered with WP_CLI::add_command() and its method that reads $args and runs the DELETE query",
+    "Identify the flaw: the CLI argument is interpolated directly into the $wpdb->query() SQL string instead of using $wpdb->prepare()",
+    "Sanitize the positional argument to its expected type with absint(), using isset() to apply a safe default when the argument is missing",
+    "Rewrite the query through $wpdb->prepare() with a %d placeholder so no $args value is ever interpolated into SQL",
+    "Fail fast with WP_CLI::error() when the sanitized value is invalid, before any query runs",
+    "Report the result with WP_CLI::success() (or WP_CLI::log()/WP_CLI::error()) instead of echo"
+  ],
+  "success_criteria": [
+    "No CLI argument is interpolated into SQL; the dynamic DELETE query goes through $wpdb->prepare() with a %d placeholder",
+    "The positional argument is sanitized with absint() and an isset() default, matching the expected integer type",
+    "Invalid input exits via WP_CLI::error() before any database query executes",
+    "Command output uses WP_CLI::success()/WP_CLI::log()/WP_CLI::error(), not echo",
+    "The injection is resolved: arbitrary SQL appended to the CLI argument can no longer execute"
+  ]
+}

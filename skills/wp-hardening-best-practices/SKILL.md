@@ -6,9 +6,10 @@ description: >
   Covers security keys, DISALLOW_FILE_EDIT, FORCE_SSL_ADMIN, disabling debug output,
   blocking PHP execution in uploads, protecting sensitive files, and least-privilege file
   permissions. Apply proactively when setting up or reviewing a site's configuration.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, hardening, wp-config, htaccess, permissions, deployment]
+  tags: "wordpress, security, hardening, wp-config, htaccess, permissions, deployment"
 ---
 
 # WordPress hardening best practices
@@ -56,6 +57,10 @@ configured to fail safely.
    restrict `wp-admin`/`xmlrpc.php`.
 4. Set file/dir permissions to least privilege.
 5. Keep everything updated; remove what you don't use.
+6. Add abuse controls for public surfaces: comment moderation on, pingbacks off if
+   unused, and — for bot-heavy sites — CAPTCHA/Turnstile on login and registration via
+   an established plugin (hand-rolled CAPTCHAs fail in both directions). Pair with the
+   login throttle from `authentication-session-security`; XML-RPC stays off unless needed.
 
 ## Common AI mistakes / anti-patterns
 
@@ -186,8 +191,8 @@ from rotting.
 Hardened `wp-config.php` constants are in
 [`references/wp-config-hardening.php`](references/wp-config-hardening.php); Apache and
 nginx rules (deny PHP in uploads, protect `wp-config.php`/`.htaccess`/`debug.log`, limit
-`xmlrpc.php`) are in
-[`references/htaccess-hardening.conf`](references/htaccess-hardening.conf).
+`xmlrpc.php`) are in [`references/htaccess-hardening.conf`](references/htaccess-hardening.conf);
+the consolidated pre-launch sweep is [`references/go-live-checklist.md`](references/go-live-checklist.md).
 
 ## Checklist
 

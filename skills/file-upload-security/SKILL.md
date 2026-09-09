@@ -6,9 +6,10 @@ description: >
   wp_check_filetype_and_ext with a MIME/extension allowlist, blocks executable types,
   and prevents path traversal. Prevents arbitrary file upload and RCE. Apply proactively
   to any upload or file-writing code path.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, upload, files, rce, path-traversal]
+  tags: "wordpress, security, php, upload, files, rce, path-traversal"
 ---
 
 # File upload security

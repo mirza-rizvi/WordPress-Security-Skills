@@ -1,0 +1,27 @@
+{
+  "name": "Secure a REST write endpoint",
+  "skills": [
+    "secure-plugin-development",
+    "rest-api-security"
+  ],
+  "query": "My plugin registers a REST route 'my-plugin/v1/settings' with a POST handler that saves a color option via update_option(). I kept 'permission_callback' => '__return_true' so my front-end fetch stops getting 403s. Please add proper input handling for the color parameter.",
+  "expected_behavior": [
+    "Identify the register_rest_route() call for the POST /settings route and spot 'permission_callback' => '__return_true'",
+    "Recognize that __return_true on a write route means anyone, including logged-out users, can write — broken access control",
+    "Replace it with a real permission_callback that returns current_user_can( 'manage_options' ) (or a WP_Error with an HTTP status on failure)",
+    "Keep the route registered on rest_api_init under the versioned, plugin-specific namespace my-plugin/v1",
+    "Declare the color parameter under args with required, type, sanitize_callback (e.g. sanitize_hex_color) and validate_callback so the REST framework sanitizes and validates before the callback runs",
+    "Treat params as already sanitized inside the callback but escape any HTML in the response with esc_html()",
+    "Return rest_ensure_response() on success and a WP_Error with an explicit HTTP status on failure",
+    "Do not rely on the wp_rest nonce for authorization — capabilities decide what is allowed",
+    "Keep the response minimal: only the fields the client actually renders"
+  ],
+  "success_criteria": [
+    "The write route's permission_callback is a real callback enforcing current_user_can() — __return_true is gone",
+    "Route is registered on rest_api_init under the versioned namespace my-plugin/v1",
+    "Every parameter is declared under args with sanitize_callback and validate_callback (and required/type where applicable)",
+    "The callback returns rest_ensure_response() on success and WP_Error with an explicit HTTP status on failure",
+    "Unauthenticated or unprivileged requests to the write route are rejected instead of saving the option",
+    "No unescaped HTML flows into the response; only the needed fields are returned"
+  ]
+}

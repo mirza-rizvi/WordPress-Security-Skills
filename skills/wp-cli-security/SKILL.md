@@ -6,9 +6,10 @@ description: >
   does not assume a logged-in user or capability context, avoids printing
   secrets, and confirms destructive operations. Prevents injection and unsafe
   automation through the CLI surface.
+compatibility: "Examples generally use PHP 7.4 syntax; check each API against target WordPress/PHP versions. Use maintained WordPress and supported PHP in production. Shell examples require their named tools."
 license: MIT
 metadata:
-  tags: [wordpress, security, php, wp-cli, cli, automation]
+  tags: "wordpress, security, php, wp-cli, cli, automation"
 ---
 
 # WP-CLI security

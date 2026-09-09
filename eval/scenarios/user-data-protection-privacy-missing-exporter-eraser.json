@@ -1,0 +1,23 @@
+{
+  "name": "Make stored subscriber data visible to WordPress privacy tools",
+  "skills": ["secure-plugin-development", "user-data-protection-privacy"],
+  "query": "Our newsletter plugin stores each subscriber's email, name, and IP address in a custom table when they sign up. Users keep asking us to export and delete their data under GDPR, but nothing about our subscribers shows up in Tools -> Export/Erase Personal Data — please make the plugin handle that properly.",
+  "expected_behavior": [
+    "Inventory the stored PII (email, name, IP) across the plugin's tables, options, and meta",
+    "Register a personal data exporter via add_filter() on wp_privacy_personal_data_exporters, returning the subscriber's rows in the paginated export structure (group_id, group_label, item_id, data, done)",
+    "Register a personal data eraser via add_filter() on wp_privacy_personal_data_erasers",
+    "Implement the eraser to actually delete the subscriber rows with $wpdb->delete() and return the documented status array (items_removed, items_retained, messages, done)",
+    "Declare the plugin's data practices with wp_add_privacy_policy_content() hooked on admin_init via add_action()",
+    "Anonymize the IP at capture with wp_privacy_anonymize_ip() after sanitize_text_field( wp_unslash( ... ) ) instead of storing the full address",
+    "Gate any display or export of subscriber PII behind current_user_can() so under-privileged users cannot read it",
+    "Define retention/cleanup so subscriber data is not kept indefinitely after the purpose expires"
+  ],
+  "success_criteria": [
+    "An exporter is registered on wp_privacy_personal_data_exporters and returns subscriber data in the paginated export structure",
+    "An eraser is registered on wp_privacy_personal_data_erasers, deletes the stored rows, and returns the items_removed/items_retained/messages/done status array",
+    "Privacy policy content is declared via wp_add_privacy_policy_content()",
+    "IPs are anonymized with wp_privacy_anonymize_ip() before storage; full IP addresses are no longer retained",
+    "Subscriber PII is not exposed to under-privileged users; any display or endpoint serving it is gated with current_user_can()",
+    "Retention or cleanup of stored subscriber data is defined"
+  ]
+}
