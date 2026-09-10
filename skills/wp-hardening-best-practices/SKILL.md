@@ -62,6 +62,15 @@ configured to fail safely.
    an established plugin (hand-rolled CAPTCHAs fail in both directions). Pair with the
    login throttle from `authentication-session-security`; XML-RPC stays off unless needed.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [WordPress hardening checklist](references/checklist.md) | Before final verification of the wordpress hardening controls. |
+| [Pre-launch (go-live) checklist](references/go-live-checklist.md) | Reviewing a production launch across configuration, code, data, and operations. |
+| [Apache and nginx hardening rules](references/htaccess-hardening.conf) | Implementing server hardening for sensitive files, uploads, and restricted endpoints. |
+| [Hardened wp-config.php constants](references/wp-config-hardening.php) | Implementing the wp-config.php hardening flow for salts, HTTPS, debugging, editing, and updates. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Leaving debug output on in production

@@ -132,7 +132,8 @@ Each skill targets a documented failure mode in AI-generated WordPress code:
 
 Every skill follows the same structure: **When to use · Core principles · Step-by-step ·
 Common AI mistakes (wrong→right) · Correct code examples · Checklist · Official references**,
-with integration examples under each skill's `references/` directory. These are
+with integration examples under each skill's `references/` directory. A **Supporting
+references** table in Step-by-step explicitly routes every artifact by load condition. These are
 not a plugin bundle: adapt prefixes, permissions, storage, and any documented
 asset/template dependencies before running them in a local WordPress environment.
 

@@ -46,19 +46,30 @@ fix it using the relevant skill (`nonces-csrf-protection`, `output-escaping`,
 
 ## Step-by-step implementation
 
-1. **Inventory entry points:** grep for `wp_ajax_`, `register_rest_route`, `admin_post_`,
+1. **Record review context before inventory/scanning:** target, immutable revision
+   (commit/tag resolved to commit/checksum), reviewer, date, scope, exclusions,
+   methods/tool versions, active-testing authorization, and limitations. Keep
+   unavailable values explicitly Unknown; never infer them. Use the full
+   [report template](references/report-template.md) throughout the review.
+2. **Inventory entry points:** grep for `wp_ajax_`, `register_rest_route`, `admin_post_`,
    `add_shortcode`, `$_GET`/`$_POST`/`$_REQUEST`/`$_FILES`, form handlers.
-2. **Check applicable controls on each path:** transport-appropriate authentication
+3. **Check applicable controls on each path:** transport-appropriate authentication
    and CSRF protection, resource-level authorization, shape/type validation,
    sanitization, output escaping, and safe query construction.
-3. **Inventory sinks**, including safely guarded ones: database calls, output,
+4. **Inventory sinks**, including safely guarded ones: database calls, output,
    filesystem operations, uploads, code execution, deserialization, redirects,
    and outbound requests. Follow the input and controls before labeling any hit.
-4. **Triage:** assign Critical / High / Medium / Low / Info by impact and reachability.
-5. **Report:** file:line, category, severity, description, PoC (if safe), and the fix.
-6. **Re-verify** after fixes; confirm no control was bypassed elsewhere.
+5. **Classify before rating:** confirmed vulnerabilities alone receive severity
+   counts based on impact and reachability. Put scanner hits and incomplete traces
+   under Unverified leads, and defense-in-depth advice under Hardening recommendations.
+6. **Report:** evidence/data flow, exploit prerequisites, impact, concrete remediation,
+   verification, and references. Redact secrets/PII. Do not invent CVSS/CWE values,
+   remediation hours, response promises, or an overall secure score.
+7. **Re-verify** fixes across in-scope paths; distinguish executed checks from proposed
+   checks. Record residual limitations and refuse blanket release sign-off or security
+   certification for incomplete scope.
 
-Use the read-only [sink inventory helper](scripts/scan-security-sinks.sh) first
+After recording context, use the read-only [sink inventory helper](scripts/scan-security-sinks.sh)
 if Bash and ripgrep (`rg`) are available. From this skill directory:
 
 ```bash
@@ -75,6 +86,14 @@ exit codes (0: completed, with or without hits; 2: usage/search error).
 
 See [`references/grep-patterns.md`](references/grep-patterns.md) for additional searches
 and [`references/audit-checklist.md`](references/audit-checklist.md) for the full review pass.
+
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [WordPress security audit checklist](references/audit-checklist.md) | Performing the full manual audit pass across entry points, controls, and sinks. |
+| [Audit grep patterns](references/grep-patterns.md) | Expanding the entry-point and sink inventory with additional heuristic searches. |
+| [WordPress security review report template](references/report-template.md) | Recording review context before inventory and reporting evidence, classification, verification, and limitations. |
 
 ## Common AI mistakes / anti-patterns
 
@@ -121,39 +140,35 @@ is Critical; a self-XSS reachable only by an admin editing their own profile is 
 
 ## Correct code examples
 
-Apply this review template to each finding:
+Use the full [report template](references/report-template.md) for the review.
+Keep this compact skeleton for each **confirmed** finding:
 
 ```text
-[SEVERITY] Category — short title
-Location:    path/to/file.php:42
-Description: What the code does and why it is unsafe.
-Impact:      Who can do what (auth level, data exposed, action performed).
-Fix:         The corrected code, using the relevant secure-coding skill.
-```
-
-Worked example:
-
-```text
-[CRITICAL] SQL Injection — unprepared query in order lookup
-Location:    includes/orders.php:88
-Description: $_GET['id'] is concatenated directly into a SELECT.
-Impact:      Unauthenticated; full DB read via UNION; potential auth bypass.
-Fix:         $id = absint( $_GET['id'] ?? 0 );
-             $wpdb->get_row( $wpdb->prepare(
-                 "SELECT * FROM {$wpdb->prefix}orders WHERE id = %d", $id ) );
+[SEVERITY] Category — title
+Location: Exact file:line at the reviewed revision.
+Evidence/data flow: Reachable source, governing controls, and sensitive sink.
+Exploit prerequisites: Required identity, nonce access, object restrictions, configuration.
+Impact: Demonstrated consequences and evidence-based severity rationale.
+Remediation: Concrete corrected code/configuration with fail-closed controls.
+Verification: Executed checks and results; proposed checks explicitly unexecuted.
+References: Relevant official API/security sources.
 ```
 
 ## Checklist
 
-- [ ] All entry points (AJAX, REST, admin-post, shortcodes, superglobals) inventoried.
-- [ ] Each state-changing path checked for nonce AND capability.
+- [ ] Review context records scope, immutable revision, reviewer/date, methods/versions,
+  testing authorization, exclusions, and limitations; unavailable values remain Unknown.
+- [ ] All in-scope entry points inventoried; no claim extends beyond reviewed paths.
+- [ ] State-changing paths checked independently for applicable CSRF and authorization controls.
 - [ ] Each output checked for context-correct escaping.
 - [ ] Each custom query checked for `$wpdb->prepare()`.
 - [ ] File/path operations checked for allowlisting and traversal.
-- [ ] Dangerous sinks (`eval`, `unserialize`, `extract`, raw includes) flagged.
-- [ ] Findings rated by impact × reachability, not inflated.
-- [ ] Every finding includes file:line and a concrete fix.
-- [ ] Fixes re-verified; no control bypassed elsewhere.
+- [ ] Dangerous sink hits traced before classifying them as vulnerabilities.
+- [ ] Confirmed findings alone enter severity totals; unverified leads and hardening stay separate.
+- [ ] Each finding records location, evidence/data flow, exploit prerequisites, impact,
+  concrete remediation, verification, and references.
+- [ ] Executed checks and results distinguished from proposed checks and unverified fixes.
+- [ ] Secrets/PII redacted; residual scope limitations explicit; no blanket sign-off or certification.
 
 ## Official references
 

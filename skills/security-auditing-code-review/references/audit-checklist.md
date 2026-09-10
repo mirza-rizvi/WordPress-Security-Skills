@@ -40,6 +40,17 @@ Work top-down. For each entry point, verify all four controls, then sweep the si
 - [ ] Errors/debug output disabled in production.
 
 ## Reporting
-- [ ] Each finding: file:line, category, severity (impact × reachability), description, fix.
-- [ ] Severities not inflated; real exploitability confirmed.
-- [ ] Fixes re-verified; no control bypassed elsewhere.
+- [ ] Review context records target, immutable revision, reviewer/date, scope/exclusions,
+  methods/tool versions, testing authorization, and limitations; unknowns are explicit.
+- [ ] Each confirmed finding includes file:line, category, evidence/data flow, exploit
+  prerequisites, impact, concrete remediation, verification, and official references.
+- [ ] Severity follows demonstrated impact and reachability; only confirmed vulnerabilities
+  enter totals. Scanner hits/incomplete traces are unverified leads; optional controls
+  without demonstrated vulnerabilities are separate hardening recommendations.
+- [ ] Executed verification and actual results are separate from proposed checks; fixes
+  and alternate in-scope paths are re-verified or explicitly marked unverified.
+- [ ] Secrets/PII are redacted; residual limitations and excluded paths are explicit.
+- [ ] Incomplete scope receives no security certification or blanket release sign-off.
+- [ ] No secure score, remediation-hour estimates, or response-time promises; CVSS/CWE
+  values appear only with the actual vector/mapping and recorded source.
+- [ ] The report follows the full [report template](report-template.md).

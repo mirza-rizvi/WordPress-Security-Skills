@@ -62,6 +62,13 @@ patterns and the `nonces-csrf-protection` skill for custom-form nonce handling.
    `check_admin_referer()`, plus `current_user_can( 'manage_options' )`.
 6. When displaying saved options anywhere, escape for the output context.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Settings & options security checklist](references/checklist.md) | Before final verification of the settings & options security controls. |
+| [Secure Settings API page](references/secure-settings-page.php) | Implementing a sanitized Settings API page with an options.php form and escaped output. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `register_setting()` with no sanitize callback

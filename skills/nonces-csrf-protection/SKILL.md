@@ -71,6 +71,13 @@ but the moment it writes, deletes, or triggers a side effect, it is mandatory.
 5. **Then** `wp_unslash()` + sanitize the input, do the work, and escape any output.
 6. **Fail closed** on any failure with `wp_die()` or `wp_send_json_error()`.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Nonce / CSRF verification checklist](references/checklist.md) | Before final verification of the nonce / csrf verification controls. |
+| [Secure AJAX nonce flow](references/secure-ajax-handler.php) | Implementing the privileged AJAX flow from nonce generation through verification, authorization, and JSON response. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Verifying the nonce but skipping the capability check

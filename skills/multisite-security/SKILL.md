@@ -63,6 +63,13 @@ patterns.
 5. After switching, re-check capabilities if the action is privileged.
 6. Return errors rather than silently failing or defaulting to the current site.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Multisite security checklist](references/checklist.md) | Before final verification of the multisite security controls. |
+| [Secure multisite operations](references/secure-multisite-operations.php) | Implementing validated site switching, membership checks, context restoration, and network option updates. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `switch_to_blog()` with an unvalidated blog id

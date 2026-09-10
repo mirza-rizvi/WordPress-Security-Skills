@@ -21,7 +21,7 @@ against developer.wordpress.org.
 | Count failed attempts | `wp_login_failed` action | Fires for wrong passwords, unknown users, and blocked attempts. |
 | Block when over threshold | `wp_authenticate_user` filter | Return a `WP_Error` to stop the login; return `$user` untouched otherwise. |
 | Reset counter on success | `wp_login` action | Fires only after a fully successful sign-on. |
-| Persist the counter | `set_transient()` / `get_transient()` / `delete_transient()` | Key on `md5( strtolower( $username ) . '|' . $ip )`; re-setting refreshes the TTL (sliding window). |
+| Persist the counter | `set_transient()` / `get_transient()` / `delete_transient()` | Key on `md5( strtolower( $username ) . '\|' . $ip )`; re-setting refreshes the TTL (sliding window). |
 | Client IP | `$_SERVER['REMOTE_ADDR']` | No core `get_client_ip()`. Never trust `X-Forwarded-For`; it is client-controlled. |
 
 ## Session destruction

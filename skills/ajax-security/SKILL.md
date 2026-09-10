@@ -71,6 +71,13 @@ Related: see the `nonces-csrf-protection` skill for the full nonce lifecycle and
 7. Perform the authorized action.
 8. Return `wp_send_json_success()` or `wp_send_json_error()` and stop.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [AJAX security checklist](references/checklist.md) | Before final verification of AJAX security controls. |
+| [Secure AJAX handler](references/secure-ajax-handler.php) | Implementing the privileged admin-ajax.php profile-update flow with nonce, capability, input validation, and JSON responses. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — No nonce verification

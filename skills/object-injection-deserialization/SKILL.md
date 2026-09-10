@@ -51,6 +51,13 @@ magic methods (`__wakeup()`, `__destruct()`, `__toString()`) that form POP
 4. Validate the decoded shape (expected keys/types) before use.
 5. Escape any values from the decoded data before output.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Object injection & deserialization checklist](references/checklist.md) | Before final verification of the object injection & deserialization controls. |
+| [Secure deserialization and import](references/secure-deserialization.php) | Implementing validated JSON imports and disabling class instantiation where trusted deserialization is unavoidable. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `unserialize()` on `$_POST`

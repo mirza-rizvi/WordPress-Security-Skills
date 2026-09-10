@@ -145,6 +145,14 @@ handling.
 8. After login, check capabilities before privileged actions:
    `current_user_can( 'edit_posts' )` or `user_can( $user_id, $cap )`.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Authentication & session security — cheatsheet](references/cheatsheet.md) | Choosing the applicable WordPress API or control for authentication and session management. |
+| [Authentication & session security — deployment checklist](references/checklist.md) | Before final verification of the authentication & session security controls. |
+| [Secure authentication and sessions](references/secure-authentication.php) | Implementing the login, throttling, session-revocation, and safe-redirect flow. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Rolling a custom credential check

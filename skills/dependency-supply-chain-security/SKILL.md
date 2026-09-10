@@ -158,6 +158,14 @@ the `secure-plugin-development` skill for overall plugin hardening.
    calling `mysql_*` or `create_function()` was written for PHP that no longer
    runs your code.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Dependency & supply-chain cheatsheet](references/cheatsheet.md) | Choosing the applicable WordPress API or control for dependency and supply-chain security. |
+| [Dependency & supply-chain checklist](references/checklist.md) | Before final verification of the dependency & supply-chain controls. |
+| [Secure dependency management](references/secure-dependency-management.php) | Implementing version-gated dependency loading, core asset reuse, pinned CDN assets, and confined local includes. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 - Vendoring a stale copy of a library core already ships

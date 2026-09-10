@@ -65,6 +65,13 @@ URLs and the `capability-permission-checks` skill for normal request authorizati
 5. Avoid passing secrets or raw user input as cron args.
 6. On plugin deactivation, clear the hook.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Cron & background job security checklist](references/checklist.md) | Before final verification of the cron & background job security controls. |
+| [Secure cron job](references/secure-cron-job.php) | Implementing a recurring cron job with stored authorization context and deactivation cleanup. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Using `current_user_can()` inside a cron callback

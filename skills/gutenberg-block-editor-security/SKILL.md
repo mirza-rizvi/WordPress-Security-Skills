@@ -59,6 +59,13 @@ and the `rest-api-security` skill for REST endpoints.
    - In `update_callback`, check the acting user's capability on the object.
 6. For `RichText`, sanitize on save with `wp_kses_post()` and escape on render.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Gutenberg block editor security checklist](references/checklist.md) | Before final verification of the gutenberg block editor security controls. |
+| [Secure block editor integration](references/secure-block-editor.php) | Implementing a dynamic block render callback and capability-gated REST field updates. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Render callback echoing attributes unescaped

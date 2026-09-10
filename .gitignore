@@ -60,7 +60,8 @@ vendor/
 .phpcs-cache
 .php-cs-fixer.cache
 
-# Python virtualenvs (local validation tooling)
+# Python caches (local validation tooling)
+__pycache__/
 .venv*/
 venv/
 
@@ -92,3 +93,4 @@ gitleaks-report*.sarif
 # Internal working notes (not part of the public repo)
 docs/phase-1/
 docs/phase-2/
+docs/sample/

@@ -84,6 +84,13 @@ Related: see the `nonces-csrf-protection` skill for CSRF tokens and the
       when making local commits. Use local secret scanning/pre-commit checks for
       earlier feedback; neither catches every secret or replaces safe handling.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Secrets & credentials management checklist](references/checklist.md) | Before final verification of the secrets & credentials management controls. |
+| [Secure secret storage](references/secure-secret-storage.php) | Implementing service API-key storage through wp-config.php constants or encrypted options. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — API key as a string literal

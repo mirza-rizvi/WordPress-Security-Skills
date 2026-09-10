@@ -55,6 +55,13 @@ answers "did this request come from us?" (see `nonces-csrf-protection`). Use bot
    (`add_menu_page` capability arg, REST `permission_callback`).
 5. Never gate solely by hiding UI.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Capability check examples](references/capability-check-example.php) | Implementing capability-gated admin pages, AJAX handlers, per-object actions, and REST callbacks. |
+| [Capability / authorization checklist](references/checklist.md) | Before final verification of the capability / authorization controls. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Checking the role instead of the capability

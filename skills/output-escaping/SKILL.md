@@ -53,6 +53,13 @@ do both.
 4. For translatable strings, use the `esc_*__` / `esc_*_e` variant.
 5. For values that legitimately contain HTML, use `wp_kses_post()` / `wp_kses()`.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Output escaping checklist](references/checklist.md) | Before final verification of the output escaping controls. |
+| [Output escaping cheatsheet](references/escaping-cheatsheet.md) | Choosing the applicable WordPress API or control for context-specific output escaping. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Echoing a value with no escaping

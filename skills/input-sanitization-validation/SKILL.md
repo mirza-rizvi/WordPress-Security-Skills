@@ -59,6 +59,13 @@ $allowed  = array( 'draft', 'publish', 'pending' );
 $status   = in_array( $status, $allowed, true ) ? $status : 'draft'; // validate + fallback
 ```
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Input sanitization & validation checklist](references/checklist.md) | Before final verification of the input sanitization & validation controls. |
+| [Sanitization & validation cheatsheet](references/sanitization-cheatsheet.md) | Choosing the applicable WordPress API or control for input sanitization and validation. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Sanitizing without unslashing

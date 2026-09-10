@@ -64,6 +64,14 @@ checks do not apply; do not load every skill for every task.
    `wp_localize_script()` rather than inline-echoing PHP into JS.
 6. **Keep secrets out of the repo** and out of client-readable output.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Secure plugin baseline checklist](references/checklist.md) | Before final verification of the secure plugin baseline controls. |
+| [Choose the security review path](references/decision-tree.md) | Selecting focused skills for the entry point and all relevant data and risk branches. |
+| [Secure plugin skeleton](references/secure-plugin-skeleton.php) | Implementing a capability-gated plugin admin page and the full settings-save flow. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — No ABSPATH guard

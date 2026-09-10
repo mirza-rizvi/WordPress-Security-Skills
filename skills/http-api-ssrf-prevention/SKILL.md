@@ -60,6 +60,13 @@ Related: see the `rest-api-security` skill for inbound REST endpoints and the
 5. Sanitize or escape the response body before use/output.
 6. Log failures without exposing secrets or internal network details.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [HTTP API & SSRF prevention checklist](references/checklist.md) | Before final verification of the http api & ssrf prevention controls. |
+| [Secure outbound HTTP request](references/secure-http-request.php) | Implementing allowlisted webhook delivery with safe HTTP requests and response handling. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `wp_remote_get()` on user input with no validation

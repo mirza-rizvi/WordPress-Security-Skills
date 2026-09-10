@@ -53,6 +53,13 @@ in a web-served directory is remote code execution.
    allowed base; never `include`/`readfile` raw input.
 6. Store the returned URL/path; escape on output.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [File upload security checklist](references/checklist.md) | Before final verification of the file upload security controls. |
+| [Secure file upload handler](references/secure-file-upload.php) | Implementing the nonce-to-capability-to-validated-upload flow and optional media-library attachment. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `move_uploaded_file()` straight from `$_FILES`

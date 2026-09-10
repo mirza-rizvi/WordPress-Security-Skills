@@ -51,6 +51,13 @@ and then always via `$wpdb->prepare()`.
 5. For `IN()` lists, build a placeholder string and spread the values.
 6. For identifiers/sort columns, allowlist them (or use `%i` on 6.2+).
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [SQL injection prevention checklist](references/checklist.md) | Before final verification of the sql injection prevention controls. |
+| [Secure wpdb query patterns](references/secure-wpdb-queries.php) | Implementing parameterized database query flows with typed values and safe identifiers. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Interpolating input directly

@@ -12,7 +12,15 @@ import sys
 SECTIONS = (
     ("When to use this skill", "Describe concrete security triggers and exclusions; check three should-trigger and two should-not-trigger queries."),
     ("Core principles (and why they matter)", "Explain the trust boundaries, attacker capabilities, and controls specific to this topic."),
-    ("Step-by-step implementation", "Write actionable implementation steps, including failure paths and authorization before privileged effects."),
+    ("Step-by-step implementation", """Write actionable implementation steps, including failure paths and authorization before privileged effects.
+
+Add a row with a load condition for every new reference artifact before removing draft status.
+
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Draft checklist](references/checklist.md) | Replacing the draft with topic-specific checks and verifying the finished skill. |"""),
     ("Common AI mistakes / anti-patterns", "Show real insecure patterns and their secure replacements; explain why each correction works."),
     ("Correct code examples", "Author a complete, verified reference artifact and link it here. Do not present unfinished code as secure."),
     ("Checklist", "Replace the authoring notes in [the draft checklist](references/checklist.md) with observable security checks."),

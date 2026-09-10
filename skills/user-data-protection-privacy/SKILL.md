@@ -60,6 +60,13 @@ compliance. Minimizing data also reduces the impact of a security breach.
    the visitor's client-side consent check; a PHP cookie gate alone is unsafe with
    shared page/CDN caches. Gate server-side collection separately and provide withdrawal.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [User data protection & privacy checklist](references/checklist.md) | Before final verification of the user data protection & privacy controls. |
+| [Privacy data handlers](references/privacy-data-handlers.php) | Implementing personal-data exporter and eraser callbacks with privacy-policy integration. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Storing PII with no export/erase integration

@@ -56,6 +56,13 @@ Related: see the `output-escaping` skill for context-correct escaping and the
 5. Return the complete markup string.
 6. For rich content, use `wp_kses_post()` or a tightly scoped `wp_kses()` allowlist.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Shortcode & dynamic block security checklist](references/checklist.md) | Before final verification of the shortcode & dynamic block security controls. |
+| [Secure shortcode and dynamic block](references/secure-shortcode-block.php) | Implementing shortcode and dynamic-block render callbacks with validated attributes and escaped markup. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Echoing `$atts` directly

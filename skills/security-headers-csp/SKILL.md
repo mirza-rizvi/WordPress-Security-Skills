@@ -131,6 +131,14 @@ Related: see the `output-escaping` skill for the primary XSS defense, the
    violations. Re-check after enabling full-page caching: a cache that freezes
    HTML freezes the per-response nonce.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [HTTP security headers checklist](references/checklist.md) | Before final verification of the http security headers controls. |
+| [HTTP headers cheat sheet](references/headers-cheatsheet.md) | Choosing the applicable WordPress API or control for HTTP headers and CSP. |
+| [Secure HTTP security headers](references/secure-security-headers.php) | Implementing baseline headers across WordPress surfaces, Report-Only CSP nonces, cookie flags, and REST origin restrictions. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 - CSP theater

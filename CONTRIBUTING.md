@@ -67,13 +67,23 @@ queries. If it misfires either way, tighten it.
 7. `## Official references` — developer.wordpress.org pages, Plugin Handbook security section,
    and OWASP where it fits.
 
+End `## Step-by-step implementation` with exactly one `### Supporting references`
+subsection, before `## Common AI mistakes / anti-patterns`. Its table must use the
+columns `Reference` and `Load when`, with one relative Markdown link and a specific
+load condition for every artifact in the skill's `references/` directory. Keep the
+seven required H2 headings unchanged.
+
 Keep `SKILL.md` scannable (aim < 500 lines); move long copy-paste material into `references/`.
 
 ### `references/`
 
 Include at least one complete, copy-paste-ready artifact: a secure example file
-(`secure-*.php`), a `checklist.md`, and/or a `cheatsheet.md`. Reference them from `SKILL.md`
-with relative links (`references/secure-ajax-handler.php`).
+(`secure-*.php`), a `checklist.md`, and/or a `cheatsheet.md`. Route every regular file,
+including PHP/configuration artifacts and files in nested directories, from the
+`### Supporting references` table using an exact relative Markdown link, such as
+`[Secure AJAX handler](references/secure-ajax-handler.php)`, and explain when to load it.
+Keep contextual links whose surrounding prose provides additional instructions.
+Add a table row for each new reference artifact before removing draft status.
 
 ## Code style
 

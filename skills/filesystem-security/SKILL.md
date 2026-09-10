@@ -59,6 +59,13 @@ Related: see the `file-upload-security` skill for `$_FILES` handling and the
 3. For writes/deletes, prefer `WP_Filesystem` with `request_filesystem_credentials()`.
 4. Never expose the full server path in errors or URLs.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [Filesystem security checklist](references/checklist.md) | Before final verification of the filesystem security controls. |
+| [Secure filesystem operations](references/secure-filesystem-operations.php) | Implementing confined file reads and deletion, and writes through WP_Filesystem. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `include $_GET['page']`

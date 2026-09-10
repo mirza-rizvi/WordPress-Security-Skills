@@ -65,6 +65,13 @@ vulnerabilities.
    `rest_ensure_response()`, or a `WP_Error` with an HTTP status. Plain JSON text should
    remain text; escape at an HTML sink or normalize intentional HTML separately.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [REST API security checklist](references/checklist.md) | Before final verification of the rest api security controls. |
+| [Secure REST endpoint](references/secure-rest-endpoint.php) | Implementing a versioned REST endpoint with per-object authorization, declared arguments, and explicit error responses. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — `permission_callback => __return_true` on a write

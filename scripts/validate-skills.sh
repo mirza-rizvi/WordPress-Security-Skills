@@ -25,6 +25,7 @@ warn() {
 command -v rg >/dev/null 2>&1 || fail "rg is required."
 command -v python3 >/dev/null 2>&1 || fail "python3 is required."
 python3 scripts/validate-content.py
+python3 scripts/validate-markdown.py
 
 for skill_file in skills/*/SKILL.md; do
   line_count="$(wc -l < "$skill_file")"
@@ -43,6 +44,54 @@ for skill_file in skills/*/SKILL.md; do
     [ "$line" -gt "$previous" ] || fail "$skill_file headings are out of order."
     previous="$line"
   done
+
+  python3 - "$skill_file" "${heading_lines[2]}" "${heading_lines[3]}" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+skill_file = Path(sys.argv[1])
+lines = skill_file.read_text(encoding="utf-8").splitlines()
+heading = "### Supporting references"
+positions = [index for index, line in enumerate(lines) if line == heading]
+
+
+def fail(message):
+    sys.exit(f"ERROR: {skill_file} {message}")
+
+
+if len(positions) != 1:
+    fail(f"must contain exactly one {heading} subsection (found {len(positions)}).")
+start = positions[0]
+if not int(sys.argv[2]) < start + 1 < int(sys.argv[3]):
+    fail(f"must place {heading} between the step-by-step and anti-pattern headings.")
+end = next(
+    (index for index in range(start + 1, len(lines)) if re.match(r"^#{2,3}(?:\s|$)", lines[index])),
+    len(lines),
+)
+subsection = lines[start + 1:end]
+
+
+def cells(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+has_table = any(
+    cells(header) == ["Reference", "Load when"]
+    and len(cells(separator)) == 2
+    and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells(separator))
+    for header, separator in zip(subsection, subsection[1:])
+)
+if not has_table:
+    fail(f"{heading} must contain a table with columns Reference and Load when.")
+
+section_text = "\n".join(subsection)
+for reference in sorted((skill_file.parent / "references").rglob("*")):
+    if reference.is_file():
+        relative_path = reference.relative_to(skill_file.parent).as_posix()
+        if f"]({relative_path})" not in section_text:
+            fail(f"{heading} is missing reference: {relative_path}")
+PY
 
   while IFS= read -r reference_path; do
     [ -f "$(dirname "$skill_file")/$reference_path" ] || fail "$skill_file links missing reference: $reference_path"

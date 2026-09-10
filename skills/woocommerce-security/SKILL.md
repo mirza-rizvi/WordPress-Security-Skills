@@ -58,6 +58,13 @@ IP anonymization, and the `rest-api-security` skill for endpoint patterns.
 5. Save with `$order->save()`.
 6. Escape output with `esc_html()`, `esc_attr()`, or `wp_kses_post()`.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [WooCommerce security checklist](references/checklist.md) | Before final verification of the woocommerce security controls. |
+| [Secure WooCommerce order handler](references/secure-woocommerce-order.php) | Implementing authorized order updates through WooCommerce CRUD with sanitized input and escaped customer data. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Exposing orders without `edit_shop_orders`

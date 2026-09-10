@@ -6,20 +6,24 @@
   ],
   "query": "We ship next week and I want a security sign-off on our user-moderation plugin before release. The admin handler calls check_admin_referer( 'um_delete_user' ) before wp_delete_user( absint( $_POST['user_id'] ) ), and QA already tested the nonce flow end to end. Can you review that handler and confirm it's ready to ship?",
   "expected_behavior": [
+    "Reject blanket security certification or release sign-off from a handler-only review. Record target, immutable revision, reviewer/date, scope/exclusions, methods/tool versions, testing authorization, and limitations before inventory; unavailable values remain explicitly Unknown.",
     "Treat the handler as a trust boundary: locate it via the wp_ajax_/admin_post_ entry-point inventory and read what the code actually does rather than trusting the nonce test report.",
     "Verify the CSRF control independently: confirm check_admin_referer( 'um_delete_user' ) (or wp_verify_nonce()/check_ajax_referer()) runs before any state change.",
     "Check authorization as a separate control: look for current_user_can() gating the same path and recognize that a passing nonce does not imply a capability check.",
     "Cross-reference the controls and flag the absence: wp_delete_user() runs with no current_user_can() check, so any authenticated subscriber who obtains the nonce can delete users — absence of the guard is the bug.",
-    "Check the remaining controls on the path: user_id is read from $_POST and cast with absint() (fine), and confirm no unslashed input or unescaped output elsewhere in the handler.",
+    "Check the remaining controls on the path: validate the shape and target of user_id before integer conversion, inspect applicable unslashing/output handling, and distinguish demonstrated security defects from hardening advice.",
     "Establish nonce acquisition, target-user restrictions, and actual reachable impact before assigning severity; separate confirmed exploitation from assumptions and do not treat passing CSRF tests as authorization evidence.",
-    "Report the finding with file:line, category, severity, description, and impact, and include a concrete fix: add current_user_can( 'delete_user', $target_id ) before wp_delete_user() and reject with an error when it fails.",
-    "Re-verify the corrected path end to end and confirm no other state-changing entry point in the plugin relies on a nonce alone."
+    "Report the missing capability guard as a confirmed authorization finding when the reachable path and nonce acquisition are established: include location, evidence/data flow, exploit prerequisites, impact and justified severity, remediation, verification, and references. Add current_user_can( 'delete_user', $target_id ) before wp_delete_user() and fail closed when it fails.",
+    "Keep scanner hits or incomplete traces under Unverified leads and defense-in-depth advice under Hardening recommendations; neither enters confirmed severity totals. Redact secrets and PII.",
+    "Re-verify the corrected path with authorized, unauthorized, and malformed requests where authorized and available. State executed results separately from proposed checks; do not claim other entry points were verified when outside scope or unavailable. Record residual scope and revision limitations."
   ],
   "success_criteria": [
+    "The report refuses blanket sign-off, records review context and explicit Unknown values, and states handler-only scope and any unavailable plugin revision or environment evidence.",
     "The audit verifies nonce verification (check_admin_referer()) AND checks current_user_can() independently on the same state-changing path, never treating one as implying the other.",
-    "The identified finding is the missing capability guard before wp_delete_user(), not cosmetic/style issues on otherwise correct code.",
+    "The report identifies one confirmed authorization finding for the missing capability guard before wp_delete_user() in the isolated reachable handler, not cosmetic/style issues.",
     "The finding cites file/line, realistic exploit prerequisites, and evidence-based severity rather than prescribing a rating before investigation.",
     "The report includes concrete corrected code that adds current_user_can( 'delete_user', $target_id ) before the state change and fails closed on missing capability.",
-    "The review confirms the existing input handling (absint()) and re-verifies no other control or entry point is bypassed."
+    "The report separates unverified leads and hardening advice from confirmed findings and excludes them from confirmed severity totals.",
+    "Verification covers authorized, unauthorized, and malformed requests when executable, distinguishes observed results from proposed checks, and does not claim unreviewed entry points or an unknown plugin revision are verified. Residual scope limitations remain explicit."
   ]
 }

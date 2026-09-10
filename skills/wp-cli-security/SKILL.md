@@ -56,6 +56,13 @@ authorization and the `cron-background-job-security` skill for scheduled jobs.
 6. If the command needs a user context, require `--user=<id|login|email>` and load it with
    `WP_User::get_data_by()` / `wp_set_current_user()`.
 
+### Supporting references
+
+| Reference | Load when |
+| --- | --- |
+| [WP-CLI security checklist](references/checklist.md) | Before final verification of the wp-cli security controls. |
+| [Secure WP-CLI command](references/secure-wp-cli-command.php) | Implementing a WP-CLI command with sanitized arguments, prepared queries, destructive-action confirmation, and explicit user context. |
+
 ## Common AI mistakes / anti-patterns
 
 ### Mistake 1 — Interpolating `$args` into a query
