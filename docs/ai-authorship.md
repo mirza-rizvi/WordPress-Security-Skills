@@ -15,6 +15,9 @@ not as a security certification.
 - Metadata/specification checks verify format and packaging, not security behavior.
 - PHP syntax and coding-standard checks catch a limited class of defects; they do
   not execute examples inside WordPress or establish that authorization is correct.
+- Markdown structure checks catch unclosed code fences and broken pipe tables in
+  documentation; document structure says nothing about the security correctness
+  of the surrounding guidance.
 - Scenario validation checks fixture structure and skill coverage. It does not run
   an AI agent, score its responses, or demonstrate that the scenarios pass.
 - Installation smoke checks validate a disposable copy and reference discovery;
